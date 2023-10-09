@@ -1,4 +1,4 @@
-transform = "TCCT$AA"
+transform = "TC$A"
 letters = [*transform] #Last Column
 # print(letters) 
 sorted_letters = [*transform] #First Column
@@ -43,3 +43,15 @@ for key in last_index:
     last_first_index[last_index[key]] = first_index[key]
 
 print(last_first_index)
+
+original = ['$']
+cur = letters[last_first_index[last_index['$1']]]
+original.append(cur[:1])
+for i in range(len(transform)-2):
+    cur = letters[last_first_index[last_index[cur]]]
+    original.append(cur[:1])
+
+    
+original.reverse()
+
+print("".join(original))
