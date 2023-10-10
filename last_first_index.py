@@ -1,9 +1,9 @@
-transform = "TC$A"
-letters = [*transform] #Last Column
-# print(letters) 
-sorted_letters = [*transform] #First Column
-sorted_letters.sort()
-# print(sorted_letters)
+transform = "TGTCCCACTAA$TTTTATATATATA"
+last_column = [*transform] #Last Column
+# print(last_column) 
+first_column = [*transform] #First Column
+first_column.sort()
+# print(first_column)
 
 encounters = {}
 
@@ -14,10 +14,10 @@ encounters['C'] = 0
 encounters['T'] = 0
 
 last_index = {}
-for i in range(len(letters)):
-    encounters[letters[i]] += 1
-    concatenation = letters[i] + str(encounters[letters[i]])
-    letters[i] = concatenation
+for i in range(len(last_column)):
+    encounters[last_column[i]] += 1
+    concatenation = last_column[i] + str(encounters[last_column[i]])
+    last_column[i] = concatenation
     last_index[concatenation] = i
 
 encounters['$'] = 0
@@ -27,14 +27,12 @@ encounters['C'] = 0
 encounters['T'] = 0
 
 first_index = {}
-for i in range(len(sorted_letters)):
-    encounters[sorted_letters[i]] += 1
-    concatenation = sorted_letters[i] + str(encounters[sorted_letters[i]])
-    sorted_letters[i] = concatenation
+for i in range(len(first_column)):
+    encounters[first_column[i]] += 1
+    concatenation = first_column[i] + str(encounters[first_column[i]])
+    first_column[i] = concatenation
     first_index[concatenation] = i
 
-print("Last Column:", letters)
-print("First Column:", sorted_letters)
 
 
 
@@ -42,16 +40,53 @@ last_first_index = {}
 for key in last_index:
     last_first_index[last_index[key]] = first_index[key]
 
-print(last_first_index)
+
+length = len(transform)
+
+first_original_mapping = {}
+first_original_mapping[first_index['$1']] = length-1
 
 original = ['$']
-cur = letters[last_first_index[last_index['$1']]]
+cur = last_column[last_first_index[last_index['$1']]]
+
+first_original_mapping[first_index[cur]] = length-2
+
 original.append(cur[:1])
 for i in range(len(transform)-2):
-    cur = letters[last_first_index[last_index[cur]]]
-    original.append(cur[:1])
-
+    cur = last_column[last_first_index[last_index[cur]]]
+    first_original_mapping[first_index[cur]] = length-3-i
+    original.append(cur[:1]) #Slice out number
     
 original.reverse()
 
-print("".join(original))
+
+
+
+
+
+query = "CAT"
+
+top = 0
+bottom = length-1
+
+for i in range(1,len(query)+1):
+    cur_query_char = query[-i]
+
+
+    for i in range(length):
+        top_set = False
+        if last_column[top][:1] != cur_query_char:
+            top += 1
+        else:
+            top_set = True
+        if last_column[bottom][:1] != cur_query_char:
+            bottom -= 1
+        else:
+            if top_set:
+                break
+
+    top = last_first_index[top]
+    bottom = last_first_index[bottom]
+
+for i in range(top, bottom+1):
+    print(first_original_mapping[i],":",first_original_mapping[i]+(len(query)-1))
