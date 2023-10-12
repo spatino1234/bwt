@@ -1,6 +1,7 @@
 #ifndef HEADERFILE_H
   #define HEADERFILE_H
   #define LENGTH 100
+  #include "uthash.h"
 
 
 typedef struct {
@@ -23,10 +24,22 @@ typedef struct {
 
 
 typedef struct {
-    int lastColCharLocation;
-    int firstColCharLocation;
+    int last_char_loc;
+    int first_char_loc;
     UT_hash_handle hh;
-  } last_first_dict;
+  } last_first_dictionary;
+
+typedef struct {
+  char inputchar;
+  int inputint;
+} charint;
+
+typedef struct {
+    charint this_charint;
+    int loc;
+    UT_hash_handle hh;
+  } char_loc_dictionary;
+
 // struct dictionary {
 //   char *key;
 //   int value;

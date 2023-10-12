@@ -1,18 +1,21 @@
 #include "fullbwt.h"
 #include <stdio.h>
 #include <string.h>
-#include "uthash.h"
 
-
+int alphabeticalComp(const void *a, const void *b) { 
+       return *((char *)a) - *((char *)b); 
+}
 
 void constructIndices(char *transform) {
     // crete arrays for the last column
     int transform_length = strlen(transform);
     char last_column[transform_length][2];
 
-        
-
+    char sorted_transform[transform_length];
+    memcpy(sorted_transform, transform, strlen(transform)+1);
+    qsort(sorted_transform, strlen(transform), sizeof(char), alphabeticalComp);
     
+    last_first_dictionary lf_dict;
     encounter_dict encounters;
 
     encounters.A = 0;
@@ -20,14 +23,12 @@ void constructIndices(char *transform) {
     encounters.T = 0;
     encounters.G = 0;
     encounters.$ = 0;
-
-    // char first_column[transform_length][2];
     
     for (int i=0;i<transform_length;i++) {
         switch (*(transform+i*sizeof(char))) {
             case 'A':
                 encounters.A++;
-                last_column[i][0] = 'A'; 
+                last_column[i][0] = 'A';
                 last_column[i][1] = encounters.A;
                 break;
             case 'C':
@@ -53,6 +54,52 @@ void constructIndices(char *transform) {
         }
     }
 
+    char first_column[transform_length][2];
+
+    encounters.A = 0;
+    encounters.C = 0;
+    encounters.T = 0;
+    encounters.G = 0;
+    encounters.$ = 0;
+    
+    for (int i=0;i<transform_length;i++) {
+        switch (*(sorted_transform+i*sizeof(char))) {
+            case 'A':
+                encounters.A++;
+                first_column[i][0] = 'A'; 
+                first_column[i][1] = encounters.A;
+                break;
+            case 'C':
+                encounters.C++;
+                first_column[i][0] = 'C'; 
+                first_column[i][1] = encounters.C;
+                break;
+            case 'T':
+                encounters.T++;
+                first_column[i][0] = 'T'; 
+                first_column[i][1] = encounters.T;
+                break;
+            case 'G':
+                encounters.G++;
+                first_column[i][0] = 'G'; 
+                first_column[i][1] = encounters.G;
+                break;
+            case '$':
+                encounters.$++;
+                first_column[i][0] = '$'; 
+                first_column[i][1] = encounters.$;
+                break;
+        }
+    }
+
+    for (int i = 0; i < transform_length; i++) {
+        printf("First: %c %d \t Last: %c %d\n", first_column[i][0], first_column[i][1], last_column[i][0], last_column[i][1]);
+    }
+    
+    char_loc_dictionary *last_index = NULL;
+    char_loc_dictionary *first_index = NULL;
+    // HASH_ADD_INT( loc, charint, last_index );
+
     // printf("%d\n", encounters.A);
     // printf("%d\n", encounters.C);
     // printf("%d\n", encounters.T);
@@ -60,7 +107,7 @@ void constructIndices(char *transform) {
 }
 
 int main(){
-    char *transform = "TCCT$AA";
+    char *transform = "ATTG$AA";
     
     // print string
     printf("%s\n", transform);
