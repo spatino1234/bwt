@@ -9,96 +9,110 @@ int alphabeticalComp(const void *a, const void *b) {
 void constructIndices(char *transform) {
     // crete arrays for the last column
     int transform_length = strlen(transform);
-    char last_column[transform_length][2];
+    charint[transform_length] last_column;
 
     char sorted_transform[transform_length];
     memcpy(sorted_transform, transform, strlen(transform)+1);
     qsort(sorted_transform, strlen(transform), sizeof(char), alphabeticalComp);
     
-    last_first_dictionary lf_dict;
-    encounter_dict encounters;
+    last_first_dictionary *lf_dict = NULL;
+    char_loc_dictionary *last_index = NULL;
+    char_loc_dictionary *first_index = NULL;
+    encounter_dict lastencounters;
+    encounter_dict firstencounters;
 
-    encounters.A = 0;
-    encounters.C = 0;
-    encounters.T = 0;
-    encounters.G = 0;
-    encounters.$ = 0;
+    charint[transform_length] first_column;
+
+    first_encounters.A = 0;
+    first_encounters.C = 0;
+    first_encounters.T = 0;
+    first_encounters.G = 0;
+    first_encounters.$ = 0;
     
     for (int i=0;i<transform_length;i++) {
         switch (*(transform+i*sizeof(char))) {
             case 'A':
-                encounters.A++;
-                last_column[i][0] = 'A';
-                last_column[i][1] = encounters.A;
+                firstencounters.A++;
+                charint firstcharint;
+                firstcharint.inputchar = 'A';
+                firstcharint.inputint = firstencounters.A;
                 break;
             case 'C':
-                encounters.C++;
-                last_column[i][0] = 'C'; 
-                last_column[i][1] = encounters.C;
+                firstencounters.C++;
+                firstcharint.inputchar = 'C'; 
+                firstcharint.inputint = firstencounters.C;
                 break;
             case 'T':
-                encounters.T++;
-                last_column[i][0] = 'T'; 
-                last_column[i][1] = encounters.T;
+                firstencounters.T++;
+                firstcharint.inputchar = 'T'; 
+                firstcharint.inputint = firstencounters.T;
                 break;
             case 'G':
-                encounters.G++;
-                last_column[i][0] = 'G'; 
-                last_column[i][1] = encounters.G;
+                firstencounters.G++;
+                firstcharint.inputchar = 'G'; 
+                firstcharint.inputint = firstencounters.G;
                 break;
             case '$':
-                encounters.$++;
-                last_column[i][0] = '$'; 
-                last_column[i][1] = encounters.$;
+                firstencounters.$++;
+                firstcharint.inputchar = '$'; 
+                firstcharint.inputint = firstencounters.$;
                 break;
         }
+        firstcolumn[i] = firstcharint;
+        
+        HASH_ADD_INT(first_index, firstcharint, i);
     }
 
-    char first_column[transform_length][2];
-
-    encounters.A = 0;
-    encounters.C = 0;
-    encounters.T = 0;
-    encounters.G = 0;
-    encounters.$ = 0;
+    lastencounters.A = 0;
+    lastencounters.C = 0;
+    lastencounters.T = 0;
+    lastencounters.G = 0;
+    lastencounters.$ = 0;
     
     for (int i=0;i<transform_length;i++) {
-        switch (*(sorted_transform+i*sizeof(char))) {
+        switch (*(transform+i*sizeof(char))) {
             case 'A':
-                encounters.A++;
-                first_column[i][0] = 'A'; 
-                first_column[i][1] = encounters.A;
+                lastencounters.A++;
+                charint lastcharint;
+                lastcharint.inputchar = 'A';
+                lastcharint.inputint = lastencounters.A;
                 break;
             case 'C':
-                encounters.C++;
-                first_column[i][0] = 'C'; 
-                first_column[i][1] = encounters.C;
+                lastencounters.C++;
+                lastcharint.inputchar = 'C'; 
+                lastcharint.inputint = lastencounters.C;
                 break;
             case 'T':
-                encounters.T++;
-                first_column[i][0] = 'T'; 
-                first_column[i][1] = encounters.T;
+                lastencounters.T++;
+                lastcharint.inputchar = 'T'; 
+                lastcharint.inputint = lastencounters.T;
                 break;
             case 'G':
-                encounters.G++;
-                first_column[i][0] = 'G'; 
-                first_column[i][1] = encounters.G;
+                lastencounters.G++;
+                lastcharint.inputchar = 'G'; 
+                lastcharint.inputint = lastencounters.G;
                 break;
             case '$':
-                encounters.$++;
-                first_column[i][0] = '$'; 
-                first_column[i][1] = encounters.$;
+                lastencounters.$++;
+                lastcharint.inputchar = '$'; 
+                lastcharint.inputint = lastencounters.$;
                 break;
         }
+        lastcolumn[i] = lastcharint;
+        HASH_ADD(last_index, lastcharint, i);
+        // HASH_ADD(hh, records, key, sizeof(record_key_t), r);
+        // https://troydhanson.github.io/uthash/userguide.html, structure keys TODO
+        first_index *firstpair;
+        HASH_FIND(first_index, lastcharint, firstpair);
+        firstloc = firstpair.inputint;
+        HASH_ADD(lf_dict, i, firstloc);
     }
 
     for (int i = 0; i < transform_length; i++) {
-        printf("First: %c %d \t Last: %c %d\n", first_column[i][0], first_column[i][1], last_column[i][0], last_column[i][1]);
+
+        
+        // printf("First: %c %d \t Last: %c %d\n", first_column.inputchar, first_column.inputint, last_column.inputchar, last_column.inputint);
     }
-    
-    char_loc_dictionary *last_index = NULL;
-    char_loc_dictionary *first_index = NULL;
-    // HASH_ADD_INT( loc, charint, last_index );
 
     // printf("%d\n", encounters.A);
     // printf("%d\n", encounters.C);
