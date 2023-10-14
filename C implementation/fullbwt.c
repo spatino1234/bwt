@@ -6,110 +6,136 @@ int alphabeticalComp(const void *a, const void *b) {
        return *((char *)a) - *((char *)b); 
 }
 
+void add_to_char_loc_dictionary(charint key, int loc, char_loc_dictionary *dict)
+{
+    // the item to add to the dict
+    char_loc_dictionary *s;
+
+    // malloc and assign values to s, can be freed by iterating over the dict
+    s = (char_loc_dictionary*)malloc(sizeof *s);
+    // need to set s entirely to 0 before adding this_charint
+    memset(s, 0, sizeof *s);
+    s->this_charint = key;
+    s->loc = loc;
+    // hh is UT_hash_handle, dict is the dictionary, this_charint is the key field, sizeof(charint) is key size, s is the item to add to dict
+    HASH_ADD(hh, dict, this_charint, sizeof(charint), s);
+}
+
+void add_to_lf_dictionary(int last_loc, int first_loc, last_first_dictionary *lf_dict)
+{
+    // see more detailed implementation in add_to_char_loc_dictionary
+    last_first_dictionary *s;
+
+    s = (last_first_dictionary*)malloc(sizeof *s);
+    s->last_char_loc = last_loc;
+    s->first_char_loc = first_loc;
+    HASH_ADD_INT(lf_dict, last_char_loc, s);
+}
+
 void constructIndices(char *transform) {
     // crete arrays for the last column
     int transform_length = strlen(transform);
-    charint[transform_length] last_column;
+    charint last_column[transform_length];
+    charint first_column[transform_length];
 
     char sorted_transform[transform_length];
     memcpy(sorted_transform, transform, strlen(transform)+1);
     qsort(sorted_transform, strlen(transform), sizeof(char), alphabeticalComp);
     
     last_first_dictionary *lf_dict = NULL;
-    char_loc_dictionary *last_index = NULL;
-    char_loc_dictionary *first_index = NULL;
-    encounter_dict lastencounters;
-    encounter_dict firstencounters;
-
-    charint[transform_length] first_column;
+    char_loc_dictionary *last_index, *first_index = NULL;
+    encounter_dict last_encounters;
+    encounter_dict first_encounters;
 
     first_encounters.A = 0;
     first_encounters.C = 0;
     first_encounters.T = 0;
     first_encounters.G = 0;
     first_encounters.$ = 0;
-    
     for (int i=0;i<transform_length;i++) {
+        charint firstcharint;
         switch (*(transform+i*sizeof(char))) {
             case 'A':
-                firstencounters.A++;
-                charint firstcharint;
+                first_encounters.A++;
                 firstcharint.inputchar = 'A';
-                firstcharint.inputint = firstencounters.A;
+                firstcharint.inputint = first_encounters.A;
                 break;
             case 'C':
-                firstencounters.C++;
+                first_encounters.C++;
                 firstcharint.inputchar = 'C'; 
-                firstcharint.inputint = firstencounters.C;
+                firstcharint.inputint = first_encounters.C;
                 break;
             case 'T':
-                firstencounters.T++;
+                first_encounters.T++;
                 firstcharint.inputchar = 'T'; 
-                firstcharint.inputint = firstencounters.T;
+                firstcharint.inputint = first_encounters.T;
                 break;
             case 'G':
-                firstencounters.G++;
+                first_encounters.G++;
                 firstcharint.inputchar = 'G'; 
-                firstcharint.inputint = firstencounters.G;
+                firstcharint.inputint = first_encounters.G;
                 break;
             case '$':
-                firstencounters.$++;
+                first_encounters.$++;
                 firstcharint.inputchar = '$'; 
-                firstcharint.inputint = firstencounters.$;
+                firstcharint.inputint = first_encounters.$;
                 break;
         }
-        firstcolumn[i] = firstcharint;
-        
-        HASH_ADD_INT(first_index, firstcharint, i);
+        first_column[i] = firstcharint;
+        add_to_char_loc_dictionary(firstcharint, i, first_index);
     }
 
-    lastencounters.A = 0;
-    lastencounters.C = 0;
-    lastencounters.T = 0;
-    lastencounters.G = 0;
-    lastencounters.$ = 0;
+    last_encounters.A = 0;
+    last_encounters.C = 0;
+    last_encounters.T = 0;
+    last_encounters.G = 0;
+    last_encounters.$ = 0;
     
     for (int i=0;i<transform_length;i++) {
+        charint lastcharint;
         switch (*(transform+i*sizeof(char))) {
             case 'A':
-                lastencounters.A++;
-                charint lastcharint;
+                last_encounters.A++;
                 lastcharint.inputchar = 'A';
-                lastcharint.inputint = lastencounters.A;
+                lastcharint.inputint = last_encounters.A;
                 break;
             case 'C':
-                lastencounters.C++;
+                last_encounters.C++;
                 lastcharint.inputchar = 'C'; 
-                lastcharint.inputint = lastencounters.C;
+                lastcharint.inputint = last_encounters.C;
                 break;
             case 'T':
-                lastencounters.T++;
+                last_encounters.T++;
                 lastcharint.inputchar = 'T'; 
-                lastcharint.inputint = lastencounters.T;
+                lastcharint.inputint = last_encounters.T;
                 break;
             case 'G':
-                lastencounters.G++;
+                last_encounters.G++;
                 lastcharint.inputchar = 'G'; 
-                lastcharint.inputint = lastencounters.G;
+                lastcharint.inputint = last_encounters.G;
                 break;
             case '$':
-                lastencounters.$++;
+                last_encounters.$++;
                 lastcharint.inputchar = '$'; 
-                lastcharint.inputint = lastencounters.$;
+                lastcharint.inputint = last_encounters.$;
                 break;
         }
-        lastcolumn[i] = lastcharint;
-        HASH_ADD(last_index, lastcharint, i);
-        // HASH_ADD(hh, records, key, sizeof(record_key_t), r);
-        // https://troydhanson.github.io/uthash/userguide.html, structure keys TODO
-        first_index *firstpair;
-        HASH_FIND(first_index, lastcharint, firstpair);
-        firstloc = firstpair.inputint;
-        HASH_ADD(lf_dict, i, firstloc);
+        // Use this if necessary: https://stackoverflow.com/questions/58752824/uthash-adding-a-new-entry-to-a-struct-struct-hashmap
+        last_column[i] = lastcharint;
+        add_to_char_loc_dictionary(lastcharint, i, last_index);
+        char_loc_dictionary *first_pair;
+        char_loc_dictionary l;
+        memset(&l, 0, sizeof(char_loc_dictionary));
+        l.this_charint = lastcharint;
+        HASH_FIND(hh, first_index, &l.this_charint, sizeof(charint), first_pair);
+        int firstloc = first_pair->loc;
+        add_to_lf_dictionary(i, firstloc, lf_dict);
     }
 
     for (int i = 0; i < transform_length; i++) {
-
+        last_first_dictionary *output_lf;
+        // this finds the corresponding index in the first column to one in the last column
+        HASH_FIND_INT(lf_dict, i, lf_dict);
         
         // printf("First: %c %d \t Last: %c %d\n", first_column.inputchar, first_column.inputint, last_column.inputchar, last_column.inputint);
     }
