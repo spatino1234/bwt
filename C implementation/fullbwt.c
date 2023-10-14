@@ -144,6 +144,26 @@ void constructIndices(char *transform) {
     // printf("%d\n", encounters.C);
     // printf("%d\n", encounters.T);
     // printf("%d\n", encounters.G);
+
+    // to free
+    char_loc_dictionary *p, *tmp = NULL;
+    HASH_ITER(hh, last_index, p, tmp) {
+      HASH_DEL(last_index, p);
+      free(p);
+    }
+    HASH_ITER(hh, first_index, p, tmp) {
+      HASH_DEL(first_index, p);
+      free(p);
+    }
+    HASH_ITER(hh, last_index, p, tmp) {
+      HASH_DEL(last_index, p);
+      free(p);
+    }
+    last_first_dictionary *p, *tmp;
+    HASH_ITER(hh, lf_dict, p, tmp) {
+      HASH_DEL(lf_dict, p);
+      free(p);
+    }
 }
 
 int main(){
