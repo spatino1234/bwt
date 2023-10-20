@@ -7,6 +7,29 @@ int alphabeticalComp(const void *a, const void *b) {
        return *((char *)a) - *((char *)b); 
 }
 
+int encodeCharacter(char character) {
+    int value = 0;
+    switch (character)
+    {
+    case 'A':
+        value = 0;
+        break;
+    case 'C':
+        value = 1;
+        break;
+    case 'T':
+        value = 2;
+        break;
+    case 'G':
+        value = 3;
+        break;
+    case '$':
+        value = 4; 
+        break;
+    }
+    return value;
+}
+
 void constructIndices(BurrowsWheeler *BW, char *transform) {
     
     // crete arrays for the last column
@@ -17,40 +40,58 @@ void constructIndices(BurrowsWheeler *BW, char *transform) {
     char sorted_transform[transform_length];
     memcpy(sorted_transform, transform, strlen(transform)+1);
     qsort(sorted_transform, strlen(transform), sizeof(char), alphabeticalComp);
-    
+
     int last_index[transform_length][5], first_index[transform_length][5];
     // initialize each element of both counters to 0
-    int last_encounters[5], first_encounters[5] = {0};
+    int first_encounters[5] = {0};
 
+    int nextchar;
+    int nextcharEncoded;
+    intpair firstintpair;
     for (int i=0;i<transform_length;i++) {
-        intpair firstintpair;
-        int nextchar = sorted_transform[i];
-        first_encounters[nextchar]++;
-        firstintpair.inputchar = nextchar;
-        firstintpair.inputint = first_encounters[nextchar];
+        nextchar = sorted_transform[i];
+        nextcharEncoded = encodeCharacter(nextchar);
+        first_encounters[nextcharEncoded]++;
+
+        firstintpair.inputchar = nextcharEncoded;
+        firstintpair.inputint = first_encounters[nextcharEncoded]-1;
 
         BW->first_column[i] = firstintpair;
         BW->first_index[firstintpair.inputint][firstintpair.inputchar] = i;
     }
 
+    int firstloc;
+    intpair lastintpair;
+
+    int last_encounters[5] = {0};
+
     for (int i=0;i<transform_length;i++) {
-        intpair lastintpair;
-        int nextchar = transform[i];
-        last_encounters[nextchar]++;
-        lastintpair.inputchar = nextchar;
-        lastintpair.inputint = last_encounters[nextchar];
+        nextchar = transform[i];
+        nextcharEncoded = encodeCharacter(nextchar);
+        last_encounters[nextcharEncoded]++;
+
+        lastintpair.inputchar = nextcharEncoded;
+        lastintpair.inputint = last_encounters[nextcharEncoded]-1;
+
+        printf("LastInt: %d\n", lastintpair.inputint);
+        printf("LastChar: %d\n", lastintpair.inputchar);
+        printf("LastValue: %d\n\n", i);
+
 
         BW->last_column[i] = lastintpair;
         BW->last_index[lastintpair.inputint][lastintpair.inputchar] = i;
-    
-        int firstloc = BW->first_index[lastintpair.inputint][lastintpair.inputchar];
+
+        
+        firstloc = BW->first_index[lastintpair.inputint][lastintpair.inputchar];
         BW->last_first_index[i] = firstloc;
     }
 
-    intpair cur = BW->last_column[BW->last_first_index[BW->last_index[0][4]]];
-    printf("char %c",cur.inputchar);
-    printf("int %c",cur.inputint);
-
+    int index_of_$_in_last_column = BW->last_index[0][4];
+    printf("%d\n", index_of_$_in_last_column);
+    // intpair cur = BW->last_column[BW->last_first_index[index_of_$_in_last_column]];
+    // printf("char %c",cur.inputchar);
+    // printf("int %c",cur.inputint);
+}
 //     for (int i = 0; i < transform_length; i++) {
 //         last_first_dictionary *output_lf;
 //         // this finds the corresponding index in the first column to one in the last column
@@ -83,12 +124,11 @@ void constructIndices(BurrowsWheeler *BW, char *transform) {
 //       HASH_DEL(lf_dict, p);
 //       free(p);
     // }
-}
+
 
 BurrowsWheeler *initBW(int length) {
     BurrowsWheeler *returnstruct = malloc(sizeof(BurrowsWheeler));
-    returnstruct->first_column = malloc(sizeof(intpair) * length);
-    returnstruct->last_column = malloc(sizeof(intpair) * length);
+    returnstruct->length = length;
     
     returnstruct->last_index = malloc(sizeof(int) * length);
     returnstruct->first_index = malloc(sizeof(int) * length);
@@ -108,8 +148,9 @@ int main(){
     BurrowsWheeler *BW = initBW(100);
     
     // print string
-    printf("%s\n", transform);
+    // printf("%s\n", transform);
     constructIndices(BW, transform);
+
     return 0;
 }
 

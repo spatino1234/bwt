@@ -8,8 +8,9 @@ typedef struct {
 } intpair;
 
 typedef struct {
-    intpair *first_column;     // Assuming a maximum length of 100 for columns
-    intpair *last_column;
+    int length;
+    intpair first_column[LENGTH];     // Assuming a maximum length of 100 for columns
+    intpair last_column[LENGTH];
     int** last_index;
     int** first_index;
     int *last_first_index;
