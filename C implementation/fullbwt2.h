@@ -17,4 +17,9 @@ typedef struct {
     int *first_original_mapping;
 } BurrowsWheeler;
 
+typedef struct Node {
+  struct Node *next;
+  int value;
+} Node;
+
 #endif
