@@ -11,6 +11,195 @@ Node *addtoList(int val, Node *list) {
     return newNode;
 }
 
+static int ComparePresorted(const void *s1, const void *s2)
+{
+    int offset1, offset2;
+    int i;
+
+    /***********************************************************************
+    * Compare 1 character at a time until there's difference or the end of
+    * the block is reached.  Since we're only sorting strings that already
+    * match at the first two characters, start with the third character.
+    ***********************************************************************/
+    offset1 = *((int *)s1) + 2;
+    offset2 = *((int *)s2) + 2;
+
+    for(i = 2; i < BW->length; i++)
+    {
+        int c1, c2;
+
+        /* ensure that offsets are properly bounded */
+        if (offset1 >= BW->length)
+        {
+            offset1 -= BW->length;
+        }
+
+        if (offset2 >= BW->length)
+        {
+            offset2 -= BW->length;
+        }
+
+        c1 = block[offset1];
+        c2 = block[offset2];
+
+        if (c1 > c2)
+        {
+            return 1;
+        }
+        else if (c2 > c1)
+        {
+            return -1;
+        }
+
+        /* strings match to here, try next character */
+        offset1++;
+        offset2++;
+    }
+
+    /* strings are identical */
+    return 0;
+}
+
+
+int bwt(int *block)
+{
+    int i, j, k;
+    int *rotationIdx;      /* index of first char in rotation */
+    int *v;                /* index of radix sorted charaters */
+    int s0Idx;                      /* index of S0 in rotations (I) */
+    int *last;            /* last characters from sorted rotations */
+
+    /* counters and offsets used for radix sorting with characters */
+    unsigned int counters[5] = {0};
+    unsigned int offsetTable[5] = {0};
+
+    /***********************************************************************
+    * BLOCK_SIZE arrays are allocated on the heap, because gcc generates
+    * code that throws a Segmentation fault when the large arrays are
+    * allocated on the stack.
+    ***********************************************************************/
+    rotationIdx = (int *)malloc(BW->length * sizeof(int));
+
+    v = (int *)malloc(BW->length * sizeof(int));
+
+    last = (int *)malloc(BW->length * sizeof(int));
+
+    /*******************************************************************
+    * Sort the rotated strings in the block.  A radix sort is performed
+    * on the first to characters of all the rotated strings (2nd
+    * character then 1st).  All rotated strings with matching initial
+    * characters are then quicksorted. - Q4..Q7
+    *******************************************************************/
+
+    /*** radix sort on second character in rotation ***/
+
+    /* count number of characters for radix sort */
+    for (i = 0; i < BW->length; i++)
+    {
+        counters[block[i]]++;
+    }
+
+    offsetTable[0] = 0;
+
+    for(i = 1; i < 5; i++)
+    {
+        /* determine number of values before those sorted under i */
+        offsetTable[i] = offsetTable[i - 1] + counters[i - 1];
+    }
+
+    /* sort on 2nd character */
+    for (i = 0; i < BW->length - 1; i++)
+    {
+        j = block[i + 1];
+        v[offsetTable[j]] = i;
+        offsetTable[j] = offsetTable[j] + 1;
+    }
+
+    /* handle wrap around for string starting at end of block */
+    j = block[0];
+    v[offsetTable[j]] = i;
+    offsetTable[0] = 0;
+
+    /*** radix sort on first character in rotation ***/
+
+    for(i = 1; i < 5; i++)
+    {
+        /* determine number of values before those sorted under i */
+        offsetTable[i] = offsetTable[i - 1] + counters[i - 1];
+    }
+
+    for (i = 0; i < BW->length; i++)
+    {
+        j = v[i];
+        j = block[j];
+        rotationIdx[offsetTable[j]] = v[i];
+        offsetTable[j] = offsetTable[j] + 1;
+    }
+
+    /*******************************************************************
+    * now rotationIdx contains the sort order of all strings sorted
+    * by their first 2 characters.  Use qsort to sort the strings
+    * that have their first two characters matching.
+    *******************************************************************/
+    for (i = 0, k = 0; k < (BW->length - 1); i++)
+    {
+        for (j = 0; k < (BW->length - 1); j++)
+        {
+            unsigned int first = k;
+
+            /* count strings starting with ij */
+            while ((i == block[rotationIdx[k]]) &&
+                (j == block[Wrap(rotationIdx[k] + 1,  BW->length)]))
+            {
+                k++;
+
+                if (k == BW->length)
+                {
+                    /* we've searched the whole block */
+                    break;
+                }
+            }
+
+            if (k - first > 1)
+            {
+                /* there are at least 2 strings staring with ij, sort them */
+                qsort(&rotationIdx[first], k - first, sizeof(int),
+                    ComparePresorted);
+            }
+        }
+    }
+
+    /* find last characters of rotations (L) - C2 */
+    s0Idx = 0;
+    for (i = 0; i < BW->length; i++)
+    {
+        if (rotationIdx[i] != 0)
+        {
+            last[i] = block[rotationIdx[i] - 1];
+        }
+        else
+        {
+            /* unrotated string 1st character is end of string */
+            s0Idx = i;
+            last[i] = block[BW->length - 1];
+        }
+    }
+
+    /* write index of end of unrotated string (I) TODO */
+    // fwrite(&s0Idx, sizeof(int), 1, fpOut);
+
+    /* write out last characters of rotations (L) TODO */
+    // fwrite(last, sizeof(unsigned char), blockSize, fpOut);
+
+
+    /* clean up */
+    free(rotationIdx);
+    free(v);
+    free(last);
+    return 0;
+}
+
+
 void displayList(Node *list) {
     Node *cur = list;
     while (cur != NULL) {
