@@ -205,10 +205,11 @@ void query(BurrowsWheeler *BW, char *query) {
     for (int i=top;i<bottom+1;i++) {
         int match = BW->first_original_mapping[i];
 
-        query_format[match] = '^';
+        // query_format[match] = '^';
+        strncpy(&query_format[match], query, query_len);
     }
-    printf("%s\n", reverse(BW));
-    printf("%s\n", query_format);
+    printf("\n%s\n", reverse(BW));
+    printf("%s\n\n", query_format);
 }
 
 BurrowsWheeler *initBW(int malloc_length) {
@@ -245,10 +246,13 @@ void freeBW(BurrowsWheeler *BW) {
 int main(){
     char *transform = "ATTG$AA";
     char *transform2 = "TT$GGGGGGGGGGGGTCCCAGGTAAAAAAAAAAAAAATTTTTTTTTTTTTTACATACCCCCCCCCCCCCTC";
-    
+    char *transform3 = "AGTATTTACGTGTCACTGCGTTTT$CGATTTTTTTTCTCCCTACGTCTAGTGTGGGCATAAGCCGAGACA";
+    char *query1;
+    printf("Enter a query: ");
+    scanf("%s", query1);
     BurrowsWheeler *BW = initBW(100);
-    constructIndices(BW, transform2);
-    query(BW, "CAT");
+    constructIndices(BW, transform3);
+    query(BW, query1);
 
     freeBW(BW);
     return 0;
