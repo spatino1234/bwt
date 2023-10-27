@@ -45,11 +45,6 @@ static int ComparePresorted(const void *s1, const void *s2)
         {
             offset2 -= blockSize;
         }
-        printf("comparing\n");
-        printf("%i\n", block[offset1]);
-        printf("%i\n", block[offset2]);
-        printf("%i\n", offset1);
-        printf("%i\n", offset2);
 
         c1 = block[offset1];
         c2 = block[offset2];
@@ -73,13 +68,13 @@ static int ComparePresorted(const void *s1, const void *s2)
 }
 
 
-int *bwt()
+void bwt(int *last)
 {
     int i, j, k;
     int *rotationIdx;      /* index of first char in rotation */
     int *v;                /* index of radix sorted charaters */
     int s0Idx;                      /* index of S0 in rotations (I) */
-    int *last;            /* last characters from sorted rotations */
+    // int *last;            /* last characters from sorted rotations */
 
     /* counters and offsets used for radix sorting with characters */
     unsigned int counters[5] = {0};
@@ -93,8 +88,6 @@ int *bwt()
     rotationIdx = (int *)malloc(blockSize * sizeof(int));
 
     v = (int *)malloc(blockSize * sizeof(int));
-    last = (int *)malloc(blockSize * sizeof(int));
-    printf("test1\n");
 
     /*******************************************************************
     * Sort the rotated strings in the block.  A radix sort is performed
@@ -108,11 +101,8 @@ int *bwt()
     /* count number of characters for radix sort */
     for (i = 0; i < blockSize; i++)
     {
-        printf("test1iter\n");
-        printf("%i\n", block[0]);
         counters[block[i]]++;
     }
-    printf("test1a\n");
 
     offsetTable[0] = 0;
 
@@ -121,7 +111,6 @@ int *bwt()
         /* determine number of values before those sorted under i */
         offsetTable[i] = offsetTable[i - 1] + counters[i - 1];
     }
-    printf("test1b\n");
 
     /* sort on 2nd character */
     for (i = 0; i < blockSize - 1; i++)
@@ -130,7 +119,6 @@ int *bwt()
         v[offsetTable[j]] = i;
         offsetTable[j] = offsetTable[j] + 1;
     }
-    printf("test2\n");
 
     /* handle wrap around for string starting at end of block */
     j = block[0];
@@ -152,7 +140,6 @@ int *bwt()
         rotationIdx[offsetTable[j]] = v[i];
         offsetTable[j] = offsetTable[j] + 1;
     }
-    printf("test3\n");
 
     /*******************************************************************
     * now rotationIdx contains the sort order of all strings sorted
@@ -186,40 +173,27 @@ int *bwt()
             }
         }
     }
-    printf("test4\n");
 
     /* find last characters of rotations (L) - C2 */
     s0Idx = 0;
-    printf("%i\n", block[0]);
     for (i = 0; i < blockSize; i++)
     {
         if (rotationIdx[i] != 0)
         {
-            printf("test5a\n");
-            // printf("%i\n", rotationIdx[i]);
-            // printf("%i\n", block[0]);
             last[i] = block[rotationIdx[i] - 1];
         }
         else
         {
-            printf("test5b\n");
             /* unrotated string 1st character is end of string */
             s0Idx = i;
             last[i] = block[blockSize - 1];
         }
-        printf("%i\n", last[i]);
     }
-    printf("test6\n");
 
     /* clean up */
     free(rotationIdx);
     free(v);
-    printf("test7\n");
-    printf("first: %i\n", last[0]);
-    printf("second: %i\n", last[1]);
-    printf("third: %i\n", last[2]);
-    printf("%li\n", sizeof(last)/sizeof(int));
-    return last;
+    return;
 }
 
 void displayList(Node *list) {
@@ -244,10 +218,10 @@ int encodeCharacter(char character) {
     case 'C':
         value = 2;
         break;
-    case 'T':
+    case 'G':
         value = 3;
         break;
-    case 'G':
+    case 'T':
         value = 4;
         break;
     case '$':
@@ -268,10 +242,10 @@ char decodeCharacter (int encoding) {
         character = 'C';
         break;
     case 3:
-        character = 'T';
+        character = 'G';
         break;
     case 4:
-        character = 'G';
+        character = 'T';
         break;
     case 0:
         character = '$';
@@ -282,31 +256,27 @@ char decodeCharacter (int encoding) {
 
 int *encodeString(char *input) {
     int input_len = strlen(input);
-    printf("%i\n", input_len);
     int *encoded_list = (int*)malloc(input_len * sizeof(int));
-    printf("%li\n", sizeof(encoded_list)/sizeof(int));
     int encodedCharacter;
     for (int i = 0; i < input_len; i++) {
         encodedCharacter = encodeCharacter(input[i]);
-        printf("digit: %d\n", encodedCharacter);
         encoded_list[i] = encodedCharacter;
     }
-    printf("4th item: %i\n", encoded_list[3]);
     return encoded_list;
 }
 
-char *decodeList(int *input) {
-    int input_len = sizeof(input)/sizeof(int);
-    printf("length: %i\n", input_len);
-    char *decoded_string = "";
-    for (int i = 0; i < input_len; i++) {
-        int cur = input[i];
-        printf("%i", cur);
-        char character = decodeCharacter(cur);
+void decodeList(char laststr[], int *input) {
+    char decoded_string[blockSize];
+    strcpy (decoded_string,"");
+    int cur;
+    char character;
+    for (int i = 0; i < blockSize; i++) {
+        cur = input[i];
+        character = decodeCharacter(cur);
         strncat(decoded_string, &character, 1);
-        printf("%c", character);
     }
-    return decoded_string;
+    strcpy(laststr, decoded_string);
+    return;
 }
 
 void constructIndices(BurrowsWheeler *BW, char *transform) {
@@ -464,9 +434,12 @@ int main(){
     char *blockstr = "GATATA$";
     blockSize = strlen(blockstr);
     block = encodeString(blockstr);
-    printf("block size: %li\n", sizeof(block)/sizeof(int));
-    int *last = bwt();
-    char *laststr = decodeList(last);
+    int *last;
+    last = (int *)malloc(blockSize * sizeof(int));
+    bwt(last);
+
+    char laststr[blockSize];
+    decodeList(laststr, last);
     printf("%s\n", laststr);
     free(block);
     free(last);
