@@ -103,7 +103,7 @@ int *bwt()
     for (i = 0; i < blockSize; i++)
     {
         printf("test1iter\n");
-        printf("%i", block[0]);
+        printf("%i\n", block[0]);
         counters[block[i]]++;
     }
     printf("test1a\n");
@@ -158,6 +158,7 @@ int *bwt()
         for (j = 0; k < (blockSize - 1); j++)
         {
             unsigned int first = k;
+            printf("%i\n", k);
 
             /* count strings starting with ij */
             while ((i == block[rotationIdx[k]]) &&
@@ -265,14 +266,15 @@ char decodeCharacter (int encoding) {
 int *encodeString(char *input) {
     int input_len = strlen(input);
     printf("%i\n", input_len);
-    int encoded_list[input_len];
-    printf("%i\n", sizeof(encoded_list)/sizeof(int));
+    int *encoded_list = (int*)malloc(input_len * sizeof(int));
+    printf("%li\n", sizeof(encoded_list)/sizeof(int));
+    int encodedCharacter;
     for (int i = 0; i < input_len; i++) {
-        int encodedCharacter = encodeCharacter(input[i]);
-        printf("digit: %i\n", encodedCharacter);
-        encoded_list[i] = encodeCharacter;
+        encodedCharacter = encodeCharacter(input[i]);
+        printf("digit: %d\n", encodedCharacter);
+        encoded_list[i] = encodedCharacter;
     }
-    printf("4th item: %i", encoded_list[3]);
+    printf("4th item: %i\n", encoded_list[3]);
     return encoded_list;
 }
 
@@ -442,9 +444,10 @@ int main(){
     char *blockstr = "GATATA$";
     blockSize = strlen(blockstr);
     block = encodeString(blockstr);
-    printf("%i\n", sizeof(block)/sizeof(int));
+    printf("block size: %li\n", sizeof(block)/sizeof(int));
     char *last = decodeList(bwt());
     printf("%s\n", last);
+    free(block);
     // BurrowsWheeler *BW = initBW(100);
     // constructIndices(BW, transform);
     // printf("String: %s\n", reverse(BW));
