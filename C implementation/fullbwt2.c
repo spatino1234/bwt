@@ -45,6 +45,11 @@ static int ComparePresorted(const void *s1, const void *s2)
         {
             offset2 -= blockSize;
         }
+        printf("comparing\n");
+        printf("%i\n", block[offset1]);
+        printf("%i\n", block[offset2]);
+        printf("%i\n", offset1);
+        printf("%i\n", offset2);
 
         c1 = block[offset1];
         c2 = block[offset2];
@@ -88,6 +93,7 @@ int *bwt()
     rotationIdx = (int *)malloc(blockSize * sizeof(int));
 
     v = (int *)malloc(blockSize * sizeof(int));
+    last = (int *)malloc(blockSize * sizeof(int));
     printf("test1\n");
 
     /*******************************************************************
@@ -153,12 +159,11 @@ int *bwt()
     * by their first 2 characters.  Use qsort to sort the strings
     * that have their first two characters matching.
     *******************************************************************/
-    for (i = 0, k = 0; k < (blockSize - 1); i++)
+    for (i = 0, k = 0; (i < 5 && k < (blockSize - 1)); i++)
     {
-        for (j = 0; k < (blockSize - 1); j++)
+        for (j = 0; (j < 5 && k < (blockSize - 1)); j++)
         {
             unsigned int first = k;
-            printf("%i\n", k);
 
             /* count strings starting with ij */
             while ((i == block[rotationIdx[k]]) &&
@@ -185,23 +190,35 @@ int *bwt()
 
     /* find last characters of rotations (L) - C2 */
     s0Idx = 0;
+    printf("%i\n", block[0]);
     for (i = 0; i < blockSize; i++)
     {
         if (rotationIdx[i] != 0)
         {
+            printf("test5a\n");
+            // printf("%i\n", rotationIdx[i]);
+            // printf("%i\n", block[0]);
             last[i] = block[rotationIdx[i] - 1];
         }
         else
         {
+            printf("test5b\n");
             /* unrotated string 1st character is end of string */
             s0Idx = i;
             last[i] = block[blockSize - 1];
         }
+        printf("%i\n", last[i]);
     }
+    printf("test6\n");
 
     /* clean up */
     free(rotationIdx);
     free(v);
+    printf("test7\n");
+    printf("first: %i\n", last[0]);
+    printf("second: %i\n", last[1]);
+    printf("third: %i\n", last[2]);
+    printf("%li\n", sizeof(last)/sizeof(int));
     return last;
 }
 
@@ -280,11 +297,14 @@ int *encodeString(char *input) {
 
 char *decodeList(int *input) {
     int input_len = sizeof(input)/sizeof(int);
+    printf("length: %i\n", input_len);
     char *decoded_string = "";
     for (int i = 0; i < input_len; i++) {
         int cur = input[i];
+        printf("%i", cur);
         char character = decodeCharacter(cur);
         strncat(decoded_string, &character, 1);
+        printf("%c", character);
     }
     return decoded_string;
 }
@@ -445,9 +465,11 @@ int main(){
     blockSize = strlen(blockstr);
     block = encodeString(blockstr);
     printf("block size: %li\n", sizeof(block)/sizeof(int));
-    char *last = decodeList(bwt());
-    printf("%s\n", last);
+    int *last = bwt();
+    char *laststr = decodeList(last);
+    printf("%s\n", laststr);
     free(block);
+    free(last);
     // BurrowsWheeler *BW = initBW(100);
     // constructIndices(BW, transform);
     // printf("String: %s\n", reverse(BW));
