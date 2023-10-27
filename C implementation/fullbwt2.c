@@ -340,8 +340,6 @@ void constructIndices(BurrowsWheeler *BW, char *transform) {
         cur = BW->last_column[BW->last_first_index[BW->last_index[cur.inputint][cur.inputchar]]];
         BW->first_original_mapping[BW->first_index[cur.inputint][cur.inputchar]] = transform_length-3-i;
     }
-
-    
 }
 
 void revstr(char *str1)  
@@ -365,7 +363,7 @@ char *reverse(BurrowsWheeler *BW) {
     
     intpair cur = BW->last_column[BW->last_index[0][4]];
 
-    for (int i = 0; i < BW->length; i++) {
+    for (int i = 0; i < BW->length-1; i++) {
         cur = BW->last_column[BW->last_first_index[BW->last_index[cur.inputint][cur.inputchar]]];
         
         char character = decodeCharacter(cur.inputchar);
@@ -401,32 +399,58 @@ void query(BurrowsWheeler *BW, char *query) {
                 }
             }
             if (top > bottom) {
-                printf("Query doesn't match anywhere\n");
+                printf("Query Doesn't Match Anywhere\n");
+                exit(0);
             }
         }
         top = BW->last_first_index[top];
         bottom = BW->last_first_index[bottom];
     }
 
-    for (int i=top;i<bottom+1;i++) {
-        printf("%d : %d \n", BW->first_original_mapping[i], BW->first_original_mapping[i]+query_len-1);
+    char query_format[BW->length];
+    for (int i=0;i<BW->length;i++) {
+        *(query_format+i) = ' ';
     }
+
+    for (int i=top;i<bottom+1;i++) {
+        int match = BW->first_original_mapping[i];
+
+        // query_format[match] = '^';
+        strncpy(&query_format[match], query, query_len);
+    }
+    printf("\n%s\n", reverse(BW));
+    printf("%s\n\n", query_format);
 }
 
-BurrowsWheeler *initBW(int length) {
+BurrowsWheeler *initBW(int malloc_length) {
     BurrowsWheeler *returnstruct = malloc(sizeof(BurrowsWheeler));
+    returnstruct->malloc_length = malloc_length;
+
+    returnstruct->last_index = (int **)malloc(sizeof(int*)*malloc_length);
+    returnstruct->first_index = (int **)malloc(sizeof(int*)*malloc_length);
     
-    returnstruct->last_index = malloc(sizeof(int) * length);
-    returnstruct->first_index = malloc(sizeof(int) * length);
-    
-    for (int i = 0; i < length; i++) {
-        returnstruct->last_index[i] = malloc(sizeof(int) * length);
-        returnstruct->first_index[i] = malloc(sizeof(int) * length);
+    for (int i = 0; i < malloc_length; i++) {
+        returnstruct->last_index[i] = malloc(sizeof(int) * malloc_length);
+        returnstruct->first_index[i] = malloc(sizeof(int) * malloc_length);
     }
     
-    returnstruct->last_first_index = malloc(sizeof(int) * length);
-    returnstruct->first_original_mapping = malloc(sizeof(int) * length);
+    returnstruct->last_first_index = malloc(sizeof(int) * malloc_length);
+    returnstruct->first_original_mapping = malloc(sizeof(int) * malloc_length);
     return returnstruct;
+}
+
+void freeBW(BurrowsWheeler *BW) {
+    free(BW->first_original_mapping);
+    free(BW->last_first_index);
+    
+    for (int i=0;i<(BW->malloc_length);i++) {
+        free(BW->last_index[i]);
+        free(BW->first_index[i]);
+    }
+    free(BW->last_index);
+    free(BW->first_index);
+
+    free(BW);
 }
 
 int main(){
@@ -447,6 +471,15 @@ int main(){
     // constructIndices(BW, transform);
     // printf("String: %s\n", reverse(BW));
     // query(BW, "TA");
+    char *transform2 = "TT$GGGGGGGGGGGGTCCCAGGTAAAAAAAAAAAAAATTTTTTTTTTTTTTACATACCCCCCCCCCCCCTC";
+    char *transform3 = "AGTATTTACGTGTCACTGCGTTTT$CGATTTTTTTTCTCCCTACGTCTAGTGTGGGCATAAGCCGAGACA";
+    char *query1;
+    printf("Enter a query: ");
+    scanf("%s", query1);
+    BurrowsWheeler *BW = initBW(100);
+    constructIndices(BW, transform3);
+    query(BW, query1);
 
+    freeBW(BW);
     return 0;
 }

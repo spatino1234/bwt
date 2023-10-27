@@ -9,6 +9,7 @@ typedef struct {
 
 typedef struct {
     int length;
+    int malloc_length;
     intpair first_column[LENGTH];     // Assuming a maximum length of 100 for columns
     intpair last_column[LENGTH];
     int** last_index;
