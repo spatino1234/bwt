@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
 
 /* wraps array index within array bounds (assumes value < 2 * limit) */
@@ -67,8 +68,84 @@ static int ComparePresorted(const void *s1, const void *s2)
     return 0;
 }
 
+static int ComparePresortedFull(const void *s1, const void *s2)
+{
+    int offset1, offset2;
+    int i;
 
-void bwt(int *last)
+    /***********************************************************************
+    * Compare 1 character at a time until there's difference or the end of
+    * the block is reached.  This time start with the first character.
+    ***********************************************************************/
+    offset1 = *((int *)s1) + 2;
+    offset2 = *((int *)s2) + 2;
+
+    for(i = 0; i < blockSize; i++)
+    {
+        int c1, c2;
+
+        /* ensure that offsets are properly bounded */
+        if (offset1 >= blockSize)
+        {
+            offset1 -= blockSize;
+        }
+
+        if (offset2 >= blockSize)
+        {
+            offset2 -= blockSize;
+        }
+
+        c1 = block[offset1];
+        c2 = block[offset2];
+
+        if (c1 > c2)
+        {
+            return 1;
+        }
+        else if (c2 > c1)
+        {
+            return -1;
+        }
+
+        /* strings match to here, try next character */
+        offset1++;
+        offset2++;
+    }
+
+    /* strings are identical */
+    return 0;
+}
+
+void qsort_bwt(int *last)
+{
+    int *rotationIdx;
+    rotationIdx = (int *)malloc(blockSize * sizeof(int));
+    for (int i = 0; i < blockSize; i++) {
+        rotationIdx[i] = i;
+    }
+    int s0Idx;
+    // printf("test1\n");
+    qsort(&rotationIdx[0], blockSize, sizeof(int),
+                    ComparePresortedFull);
+        s0Idx = 0;
+    for (int i = 0; i < blockSize; i++)
+    {
+        if (rotationIdx[i] != 0)
+        {
+            last[i] = block[rotationIdx[i] - 1];
+        }
+        else
+        {
+            /* unrotated string 1st character is end of string */
+            s0Idx = i;
+            last[i] = block[blockSize - 1];
+        }
+    }
+    free(rotationIdx);
+    return;
+}
+
+void radix_bwt(int *last)
 {
     int i, j, k;
     int *rotationIdx;      /* index of first char in rotation */
@@ -254,15 +331,14 @@ char decodeCharacter (int encoding) {
     return character;
 }
 
-int *encodeString(char *input) {
+void encodeString(char *input) {
     int input_len = strlen(input);
-    int *encoded_list = (int*)malloc(input_len * sizeof(int));
     int encodedCharacter;
     for (int i = 0; i < input_len; i++) {
         encodedCharacter = encodeCharacter(input[i]);
-        encoded_list[i] = encodedCharacter;
+        block[i] = encodedCharacter;
     }
-    return encoded_list;
+    return;
 }
 
 void decodeList(char laststr[], int *input) {
@@ -453,33 +529,103 @@ void freeBW(BurrowsWheeler *BW) {
     free(BW);
 }
 
-int main(){
-    char *transform = "ATTG$AA";
-    char *blockstr = "GATATA$";
+double evalQsortTime(char *blockstr) {
+    clock_t start_time = clock();
     blockSize = strlen(blockstr);
-    block = encodeString(blockstr);
+    block = (int*) malloc(sizeof(int)*blockSize);
+    encodeString(blockstr);
     int *last;
     last = (int *)malloc(blockSize * sizeof(int));
-    bwt(last);
+    qsort_bwt(last);
 
     char laststr[blockSize];
     decodeList(laststr, last);
-    printf("%s\n", laststr);
-    free(block);
     free(last);
-    // BurrowsWheeler *BW = initBW(100);
-    // constructIndices(BW, transform);
-    // printf("String: %s\n", reverse(BW));
-    // query(BW, "TA");
-    char *transform2 = "TT$GGGGGGGGGGGGTCCCAGGTAAAAAAAAAAAAAATTTTTTTTTTTTTTACATACCCCCCCCCCCCCTC";
-    char *transform3 = "AGTATTTACGTGTCACTGCGTTTT$CGATTTTTTTTCTCCCTACGTCTAGTGTGGGCATAAGCCGAGACA";
-    char *query1;
-    printf("Enter a query: ");
-    scanf("%s", query1);
-    BurrowsWheeler *BW = initBW(100);
-    constructIndices(BW, transform3);
-    query(BW, query1);
+    double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
+    return elapsed_time;
+}
 
-    freeBW(BW);
-    return 0;
+double evalRadixTime(char* blockstr) {
+    clock_t start_time;
+    start_time = clock();
+    blockSize = strlen(blockstr);
+    block = (int*) malloc(sizeof(int)*blockSize);
+    encodeString(blockstr);
+    int *last;
+    last = (int *)malloc(blockSize * sizeof(int));
+    radix_bwt(last);
+
+    char laststr[blockSize];
+    decodeList(laststr, last);
+    free(last);
+    free(block);
+    double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
+    return elapsed_time;
+}
+
+void genBWTString(int length, char *bwt_string) {
+    srand(time(0));
+    int i;
+    int bwt_intstring[length];
+    for (i = 0; i < length; i++) { 
+        int num = rand() % 5; 
+        bwt_intstring[i] = num;
+    }
+    blockSize = length;
+    decodeList(bwt_string, bwt_intstring);
+    return;
+}
+
+void getRunTimes(bool isRadix) {
+    int counts[9] = {100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000};
+    double time_sum;
+    double cur_best = 0;
+    if (isRadix) {
+        printf("Radix times\n");
+    }
+    else {
+        printf("Full qsort times\n");
+    }
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 20; j++) {
+            time_sum = 0;
+            for (int k = 0; k < 10; k++) {
+                char sort_str[counts[i]];
+                genBWTString(counts[i], sort_str);
+                if (isRadix) {
+                    time_sum += evalRadixTime(sort_str);
+                }
+                else {
+                    time_sum += evalQsortTime(sort_str);
+                }
+            }
+            if (cur_best == 0) {
+                cur_best = time_sum;
+            }
+            cur_best = MIN(cur_best, time_sum);
+        }
+        printf("run %i: %f seconds\n", counts[i], cur_best);
+        cur_best = 0;
+    }
+}
+
+int main(){
+//     char *transform = "ATTG$AA";
+//     // BurrowsWheeler *BW = initBW(100);
+//     // constructIndices(BW, transform);
+//     // printf("String: %s\n", reverse(BW));
+//     // query(BW, "TA");
+//     char *transform2 = "TT$GGGGGGGGGGGGTCCCAGGTAAAAAAAAAAAAAATTTTTTTTTTTTTTACATACCCCCCCCCCCCCTC";
+//     char *transform3 = "AGTATTTACGTGTCACTGCGTTTT$CGATTTTTTTTCTCCCTACGTCTAGTGTGGGCATAAGCCGAGACA";
+//     char *query1;
+//     printf("Enter a query: ");
+//     scanf("%s", query1);
+//     BurrowsWheeler *BW = initBW(100);
+//     constructIndices(BW, transform3);
+//     query(BW, query1);
+
+//     freeBW(BW);
+//     return 0;
+    getRunTimes(true);
+    getRunTimes(false);
 }

@@ -1,6 +1,7 @@
 #ifndef HEADERFILE_H
   #define HEADERFILE_H
   #define LENGTH 100
+  #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
 typedef struct {
   int inputchar;
