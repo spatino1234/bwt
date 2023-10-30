@@ -118,8 +118,31 @@ static int ComparePresortedFull(const void *s1, const void *s2)
 
 void qsort_bwt(int *last)
 {
-    qsort(&last[0], blockSize, sizeof(int),
+    int *rotationIdx;
+    rotationIdx = (int *)malloc(blockSize * sizeof(int));
+    for (int i = 0; i < blockSize; i++) {
+        rotationIdx[i] = i;
+    }
+    int s0Idx;
+    // printf("test1\n");
+    qsort(&rotationIdx[0], blockSize, sizeof(int),
                     ComparePresortedFull);
+        s0Idx = 0;
+    for (int i = 0; i < blockSize; i++)
+    {
+        if (rotationIdx[i] != 0)
+        {
+            last[i] = block[rotationIdx[i] - 1];
+        }
+        else
+        {
+            /* unrotated string 1st character is end of string */
+            s0Idx = i;
+            last[i] = block[blockSize - 1];
+        }
+    }
+    free(rotationIdx);
+    return;
 }
 
 void radix_bwt(int *last)
@@ -308,15 +331,14 @@ char decodeCharacter (int encoding) {
     return character;
 }
 
-int *encodeString(char *input) {
+void encodeString(char *input) {
     int input_len = strlen(input);
-    int *encoded_list;
     int encodedCharacter;
     for (int i = 0; i < input_len; i++) {
         encodedCharacter = encodeCharacter(input[i]);
-        encoded_list[i] = encodedCharacter;
+        block[i] = encodedCharacter;
     }
-    return encoded_list;
+    return;
 }
 
 void decodeList(char laststr[], int *input) {
@@ -510,31 +532,33 @@ void freeBW(BurrowsWheeler *BW) {
 double evalQsortTime(char *blockstr) {
     clock_t start_time = clock();
     blockSize = strlen(blockstr);
-    block = encodeString(blockstr);
+    block = (int*) malloc(sizeof(int)*blockSize);
+    encodeString(blockstr);
     int *last;
     last = (int *)malloc(blockSize * sizeof(int));
     qsort_bwt(last);
 
     char laststr[blockSize];
     decodeList(laststr, last);
-    printf("%s\n", laststr);
     free(last);
     double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
     return elapsed_time;
 }
 
 double evalRadixTime(char* blockstr) {
-    clock_t start_time = clock();
+    clock_t start_time;
+    start_time = clock();
     blockSize = strlen(blockstr);
-    block = encodeString(blockstr);
+    block = (int*) malloc(sizeof(int)*blockSize);
+    encodeString(blockstr);
     int *last;
     last = (int *)malloc(blockSize * sizeof(int));
     radix_bwt(last);
 
     char laststr[blockSize];
     decodeList(laststr, last);
-    printf("%s\n", laststr);
     free(last);
+    free(block);
     double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
     return elapsed_time;
 }
@@ -547,14 +571,15 @@ void genBWTString(int length, char *bwt_string) {
         int num = rand() % 5; 
         bwt_intstring[i] = num;
     }
+    blockSize = length;
     decodeList(bwt_string, bwt_intstring);
     return;
 }
 
 void getRunTimes(bool isRadix) {
     int counts[9] = {100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000};
-    int time_sum;
-    int cur_best = 0;
+    double time_sum;
+    double cur_best = 0;
     if (isRadix) {
         printf("Radix times\n");
     }
@@ -579,7 +604,7 @@ void getRunTimes(bool isRadix) {
             }
             cur_best = MIN(cur_best, time_sum);
         }
-        printf("run %i: %d seconds\n", counts[i], cur_best);
+        printf("run %i: %f seconds\n", counts[i], cur_best);
         cur_best = 0;
     }
 }
