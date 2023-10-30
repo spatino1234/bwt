@@ -12,11 +12,14 @@
 int *block;     /* block being (un)transformed */
 size_t blockSize;                    /* actual size of block */
 
-Node *addtoList(int val, Node *list) {
-    Node *newNode;
-    newNode->value = val;
-    newNode->next = list;
-    return newNode;
+Node *newNode(int val, Node *next) {
+    Node *r = malloc(sizeof(Node));
+    if (r == NULL) {
+        printf("Error: Malloc failed in newRead\n");
+    }
+    r->next = next;
+    r->value = val;
+    return r;
 }
 
 static int ComparePresorted(const void *s1, const void *s2)
@@ -276,8 +279,18 @@ void radix_bwt(int *last)
 void displayList(Node *list) {
     Node *cur = list;
     while (cur != NULL) {
-        printf("%d\n",cur->value);
+        printf("%d, ",cur->value);
         cur = cur->next;
+    }
+    printf("\n\n");
+}
+
+void freeList(Node* first) {
+    Node *cur = first;
+    while (cur != NULL) {
+        Node* next = cur->next;
+        free(cur);
+        cur = next;
     }
 }
 
@@ -451,6 +464,9 @@ char *reverse(BurrowsWheeler *BW) {
 }
 
 void query(BurrowsWheeler *BW, char *query) {
+    printf("Query: %s\n", query);
+    printf("Matches: \n");
+
     int top = 0;
     int bottom = (BW->length)-1;
     int query_len = strlen(query);
@@ -475,27 +491,72 @@ void query(BurrowsWheeler *BW, char *query) {
                 }
             }
             if (top > bottom) {
-                printf("Query Doesn't Match Anywhere\n");
-                exit(0);
+                printf("Query Doesn't Match Anywhere\n\n");
+                return;
             }
         }
         top = BW->last_first_index[top];
         bottom = BW->last_first_index[bottom];
     }
 
-    char query_format[BW->length];
-    for (int i=0;i<BW->length;i++) {
-        *(query_format+i) = ' ';
-    }
-
+    Node *matchList = NULL;
     for (int i=top;i<bottom+1;i++) {
         int match = BW->first_original_mapping[i];
-
-        // query_format[match] = '^';
-        strncpy(&query_format[match], query, query_len);
+        matchList = newNode(match, matchList);
     }
-    printf("\n%s\n", reverse(BW));
-    printf("%s\n\n", query_format);
+
+    displayList(matchList);
+    freeList(matchList);
+}
+
+char *readGenome(char *fileName) {
+    FILE *file = fopen(fileName, "r");
+    if (file == NULL) {
+        printf("Error: Unable to open fastq file.\n");
+    }
+    
+    fseek(file, 0, SEEK_END);
+    long fileLength = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    
+    char *contents = (char *)malloc(fileLength + 2);
+    if (contents == NULL) {
+        fclose(file);
+        printf("Error: Unable to allocate memory.\n");
+        return NULL;
+    }
+    size_t bytesRead = fread(contents, 1, fileLength, file);
+    if (bytesRead != fileLength) {
+        fclose(file);
+        free(contents);
+        perror("Error reading the file");
+        return NULL;
+    }
+
+    contents[fileLength] = '$';
+    contents[fileLength+1] = '\0';
+    fclose(file);
+    return contents;
+}
+
+void queryFASTQ(BurrowsWheeler *BW, char *fileName) {
+    FILE *fastq = fopen(fileName, "r");
+    if (fastq == NULL) {
+        printf("Error: Unable to open fastq file.\n");
+    }
+    char buffer[500];
+    while (fgets(buffer, 500, fastq)){
+        if (buffer[0] == '@') {
+            fgets(buffer, 500, fastq);
+            int read_len = strlen(buffer);
+            char read[read_len];
+            strncpy(read, buffer, read_len-1);
+            read[read_len] = '\0';
+
+            query(BW, read);
+        }
+    }
+    fclose(fastq);
 }
 
 BurrowsWheeler *initBW(int malloc_length) {
@@ -563,6 +624,32 @@ double evalRadixTime(char* blockstr) {
     return elapsed_time;
 }
 
+void BWTRadix(char *blockstr, char *transformed_string) {
+    blockSize = strlen(blockstr);
+    block = (int*) malloc(sizeof(int)*blockSize);
+    encodeString(blockstr);
+    int *last;
+    last = (int *)malloc(blockSize * sizeof(int));
+    radix_bwt(last);
+    decodeList(transformed_string, last);
+    free(last);
+    free(block);
+    return;
+}
+
+void BWTqsort(char *blockstr, char *transformed_string) {
+    blockSize = strlen(blockstr);
+    block = (int*) malloc(sizeof(int)*blockSize);
+    encodeString(blockstr);
+    int *last;
+    last = (int *)malloc(blockSize * sizeof(int));
+    qsort_bwt(last);
+    decodeList(transformed_string, last);
+    free(last);
+    free(block);
+    return;
+}
+
 void genBWTString(int length, char *bwt_string) {
     srand(time(0));
     int i;
@@ -612,23 +699,42 @@ void getRunTimes(bool isRadix) {
     printf("]\n");
 }
 
-int main(){
-//     char *transform = "ATTG$AA";
-//     // BurrowsWheeler *BW = initBW(100);
-//     // constructIndices(BW, transform);
-//     // printf("String: %s\n", reverse(BW));
-//     // query(BW, "TA");
-//     char *transform2 = "TT$GGGGGGGGGGGGTCCCAGGTAAAAAAAAAAAAAATTTTTTTTTTTTTTACATACCCCCCCCCCCCCTC";
-//     char *transform3 = "AGTATTTACGTGTCACTGCGTTTT$CGATTTTTTTTCTCCCTACGTCTAGTGTGGGCATAAGCCGAGACA";
-//     char *query1;
-//     printf("Enter a query: ");
-//     scanf("%s", query1);
-//     BurrowsWheeler *BW = initBW(100);
-//     constructIndices(BW, transform3);
-//     query(BW, query1);
+// int main(){
+// //     char *transform = "ATTG$AA";
+// //     // BurrowsWheeler *BW = initBW(100);
+// //     // constructIndices(BW, transform);
+// //     // printf("String: %s\n", reverse(BW));
+// //     // query(BW, "TA");
+// //     char *transform2 = "TT$GGGGGGGGGGGGTCCCAGGTAAAAAAAAAAAAAATTTTTTTTTTTTTTACATACCCCCCCCCCCCCTC";
+// //     char *transform3 = "AGTATTTACGTGTCACTGCGTTTT$CGATTTTTTTTCTCCCTACGTCTAGTGTGGGCATAAGCCGAGACA";
+// //     char *query1;
+// //     printf("Enter a query: ");
+// //     scanf("%s", query1);
+// //     BurrowsWheeler *BW = initBW(100);
+// //     constructIndices(BW, transform3);
+// //     query(BW, query1);
 
-//     freeBW(BW);
-//     return 0;
-    getRunTimes(true);
-    getRunTimes(false);
+// //     freeBW(BW);
+// //     return 0;
+//     getRunTimes(true);
+//     getRunTimes(false);
+// }
+
+int main(){
+    char *genome = readGenome("genome2.txt");
+
+    char transform[strlen(genome)];
+    BWTqsort(genome, transform);
+    printf("%s\n",transform);
+    
+    BurrowsWheeler *BW = initBW(100001);
+    constructIndices(BW, transform);
+
+    
+    char *fastqFile = "readsshort.fastq";
+    queryFASTQ(BW, fastqFile);
+
+
+    freeBW(BW);
+    return 0;
 }
