@@ -586,10 +586,11 @@ void getRunTimes(bool isRadix) {
     else {
         printf("Full qsort times\n");
     }
+    printf("[");
     for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 20; j++) {
+        for (int j = 0; j < 10; j++) {
             time_sum = 0;
-            for (int k = 0; k < 10; k++) {
+            for (int k = 0; k < 20; k++) {
                 char sort_str[counts[i]];
                 genBWTString(counts[i], sort_str);
                 if (isRadix) {
@@ -604,9 +605,11 @@ void getRunTimes(bool isRadix) {
             }
             cur_best = MIN(cur_best, time_sum);
         }
-        printf("run %i: %f seconds\n", counts[i], cur_best);
+        // printf("run %i: %f seconds\n", counts[i], cur_best);
+        printf("%f, ", cur_best);
         cur_best = 0;
     }
+    printf("]\n");
 }
 
 int main(){
