@@ -1,6 +1,10 @@
 import turtle
+import os
 
-# Create a turtle screen
+# Set active directory to GUI folder:
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+# Create a turtle screen:
 wn = turtle.Screen()
 wn.bgcolor("white")  # Set the background color
 wn.title("BWT Comps GUI")
@@ -10,10 +14,26 @@ t = turtle.Turtle()
 t.speed(1)  # Set the drawing speed
 t.hideturtle()
 
+
 # Define the animation functions
 
-slides = ["Table of Contents", "Intro", "Transform Explanation", "Decoding I", "Decoding II", "NGS Application", "NGS Example", "Closing Thoughts"]
-used_keys = ["C","1", "2", "3", "4", "5", "6", "7"]
+slides = ["Table of Contents", "Intro", "Transform Explanation", "Decoding I", "Decoding II", "NGS Application", "NGS Example", "BWT + NGS Metrics", "Closing Thoughts"]
+used_keys = ["C","1", "2", "3", "4", "5", "6", "7", "8"]
+
+def clear_turtle():
+    t.clear()  # Clear the turtle's drawings
+
+def draw_text(text, x, y):
+    t.penup()
+    t.goto(x, y)
+    t.pendown()
+    t.write(text, font=("Times New Roman", 16, "normal"))
+
+def draw_header(text, x, y):
+    t.penup()
+    t.goto(x, y)
+    t.pendown()
+    t.write(text, font=("Times New Roman", 20, "normal"))
 
 def bwt_quick(input_string):
     input_string += '$'
@@ -70,21 +90,6 @@ def bwt_intro(input_string):
     draw_text("BWT Encoded String:", -200, 0)
     draw_text(bwt_encoded, -100, -30)
 
-
-def clear_turtle():
-    t.clear()  # Clear the turtle's drawings
-
-def draw_text(text, x, y):
-    t.penup()
-    t.goto(x, y)
-    t.pendown()
-    t.write(text, font=("Times New Roman", 16, "normal"))
-
-def draw_header(text, x, y):
-    t.penup()
-    t.goto(x, y)
-    t.pendown()
-    t.write(text, font=("Times New Roman", 20, "normal"))
 
 def transform_visual(input_string):
     clear_turtle()
@@ -284,11 +289,195 @@ def decoding_II(input_string):
 
    draw_text(f'{end_paragraph}', -300, -200)
 
+def ngs_I(input_string):
+    # Explanations required:
+
+    clear_turtle()
+
+    para_1 = 'Now that we have gone over the mechanics of the BWT, we can begin the discussion of the BWT as a tool in genomics. \n'\
+             '\n'\
+             'The BWT was originally intented to be used with text-compression software. Using the encoding method discussed on previous \n'\
+             f'slides, the BWT creates runs of repeated characters. Using our input string, {input_string}, we see that it becomes:'
+    
+    output_string = bwt_quick(input_string)
+
+    draw_text(f'{para_1}', -400, 200)
+
+    draw_text(f'{output_string}', -50, 150)
+
+    para_2 = 'Using text-compression algorithms such as RLE (Run-Length-Encoding), as the BWT was intended for, the transformed string becomes:'
+
+    compressed_string = '1A2N1$1B2A'
+
+    draw_text(f'{para_2}', -400, 100)
+
+    draw_text(f'{compressed_string}', -50, 50)
+
+    para_3 = 'Which, as it happens, is actually a longer string that our codeword. However, consider applying this a genome, a \n'\
+             'text consisting of only four character: A, C, G & T, being the protein bases of DNA, and, at the time of this project, \n'\
+             'with the smallest discovered genome length being 159,662 characters (Carsonella rudii). Take the following base-pair sequence \n'\
+             'for instance:'
+    
+    string_sequence = 'ACATGAGCATCATCACGTACTATCAGCTATCGTATCGATCTGAGCTATG'
+
+    sequence_display = 'ACATGAGC \n'\
+                       'ATCATCAC \n'\
+                       'GTACTATC \n'\
+                       'AGCTATCG \n'\
+                       'TATCGATC \n'\
+                       'TGAGCTATG'
+
+    draw_text(f'{para_3}', -400, -50)
+
+    draw_text(f'{sequence_display}', -400, -200)
+
+    inter_1 = '==>  Applied BWT ==>'
+
+    draw_text(f'{inter_1}', -350, -250)
+
+
+    string_display= 'G$CTGCGC \n'\
+                      'TCTTGTCT \n'\
+                      'TTGATATA \n'\
+                      'GGTTTTCA \n'\
+                      'AACCGCGC \n' \
+                      'CAAAAAAA \n'\
+                      'AC'
+
+    draw_text(f'{string_display}', -200, -200)
+
+    inter_2 = '==>  Applied RLE Compression ==>'
+
+    draw_text(f'{inter_2}', -150, -250)
+
+    # G$CTGCGCTCTTGTCTTTGATATAGGTTTTCAAACCGCGCCAAAAAAAAC
+
+    string_compressed = 'G$CTGCGCTCT2TGTCT3GATATAG2T4CA3CGCGCC7A3C'
+    
+    compressed_display = 'G$CTGCGC \n' \
+                        'TCT2TGTC \n' \
+                        'T3GATATA \n' \
+                        'G2T4CA3C \n' \
+                        'GCGCC7A3C'
+    
+    draw_text(f'{compressed_display}', 0, -200)
+
+    diff_len = len(string_sequence) - len(string_compressed)
+
+    inter_3 = 'Total difference in string length:'
+
+    draw_text(f'{inter_3}', 200, -130)
+
+    draw_text(f'{diff_len}', 300, -160)
+
+    para_4 = 'Given the string length, 8 characters saved may seem trivial, however—consider the size of a genome. \n'\
+             'At a minimum of over 150,000 base pairs, the employment of the BWT has revolutionized how genomes are \n'\
+             'stored, shared and sequenced, allowing geneticists to push the boundaries of modern genomics to new extremes.'
+    
+    draw_text(f'{para_4}', -400, -350)
+
+def ngs_II():
+    clear_turtle()
+   
+    para_1 = 'Now that we have an appropriate context for the use of the BWT in genomics, we can look at \n' \
+             'the how the NGS (Next Generational Sequencing) process utilizes BWT encoding. But first, what is NGS?'\
+    
+    para_2 = 'NGS is a process whereby fragmented half-DNA strands are matched to a position (or multiple positions) \n' \
+             'on an existing DNA model (See Biology in paper lit. review). This is the process by which genomes are mapped \n.'\
+             'For example, given the model and sequence:'
+    
+    draw_text(f'{para_1}', -400, 200)
+
+    draw_text(f'{para_2}', -400, 120)
+
+    # Need DNA String (could be random, just a model)
+
+    model = 'ACTGACTGTCATCGTACGTAGCTACGACGTAGCATGCGACGTAGCACGACGAGTCGACGTAGCTAGCGACGA'
+    #                           AGCTACGACGT #Aligning this manually is gonna be a chore
+
+    substring = 'AGCTACGACGT'
+
+    draw_text(f'{model}', -400, 50)
+    draw_text(f'{substring}', -50, 10)
+
+    inter_1 = 'Feeding both the model and the sequence into an alignment tool, the substring is mapped to the correct location in the model:'
+
+    draw_text(f'{inter_1}', -400, -50)
 
 
 
+    mapped_substring = 'ACTGACTGTCATCGTACGTAGCTACGACGTAGCATGCGACGTAGCACGACGAGTCGACGTAGCTAGCGACGA \n' \
+                       #'                  ^^^^^^^^^^^ \n'\
+                      # '                  AGCTACGACGT' # What are the odds this works
+    
+    draw_text(f'{mapped_substring}', -400, -120)
+    draw_text(f'{substring} located at range [20, 30] (1-indexed)', -195, -150)
+    
 
+    para_3 = 'As briefly mentioned on slide three, the involement of the BWT is based on an opportunistic data structures \n'\
+             'called the FM-index. Built by Farragina and Manzini, the index is a set of two tables whose construction takes linear time \n'\
+             '(i.e. a larger input has a proportionally longer build time), but functions sublinearly, meaning input scaling favors large inputs. \n'\
+             'In non-CS terminology, the FM index essentially makes it far FAR more efficient to align sequences to a large model. \n'\
+             'If you would like to learn more about how this is accomplished, see the Math and Algorithm sections of our paper.'
+    
+    draw_text(f'{para_3}', -400, -300)
 
+def ngs_III():
+    # Talk about how BWT revolutionized genomics. Might import images here? Figures from paper?
+    clear_turtle()
+    
+    para_1 = 'The application of the BWT to short-read sequence aligners took off in the late 2000s, with development of Bowtie, \n'\
+             'in 2008 followed closely behind by BWA (Burrows Wheeler Aligner) and SOAP2 in 2009. Both tools demonstrated that BWT-based aligners \n'\
+             'represented the next evolution of sequence alignment. For tangible metrics, see the below figure (citation included) where all three \n'\
+             'are compared against MAQ, the previously best short-read aligned on the market:'
+    
+    draw_text(f'{para_1}', -400, 200)
+
+    citation = 'Li, Heng, and Richard Durbin. “Fast and Accurate Short Read Alignment with Burrows-Wheeler Transform.” \n' \
+               'Bioinformatics, vol. 25, no. 14, July 2009, pp. 1754-60. Silverchair, \n' \
+               'https://doi.org/10.1093/bioinformatics/btp324.'
+    
+    wn.addshape('resized_figure.gif')
+    image = turtle.Turtle()
+    image.pencolor("white")
+    image.goto(0, -100)
+    image.shape('resized_figure.gif')
+
+    draw_text(f'{citation}', -400, -430)
+
+    note_1 = '1. Processing time: \n' \
+             'Notice the drastic difference \n'\
+             'In processing speeds. All three \n'\
+             'BWT-based aligners were multiple \n'\
+             'orders of magnitued faster.'
+    
+    draw_text(f'{note_1}', -470, -25)
+    
+    note_2 = '2. Confidence: \n' \
+             'In single-ended pairings, \n' \
+             'the BWT aligners scored lower \n' \
+             'than mac for all read lengths. \n' \
+             'One the other hand, BWA had \n ' \
+             'a consistently higher confidence \n'\
+             'confidence score in Pair-ended \n' \
+             'alignment.'
+
+    draw_text(f'{note_2}', -470, -200)
+
+    note_3 = '3. Error: \n' \
+             'Granted two exceptions, \n' \
+             'the BWT aligners had higher \n' \
+             'error across the board'
+    
+    draw_text(f'{note_3}', 230, -100)
+
+def conclusion():
+    clear_turtle()
+    # Statement of purpose of this GUI—Overview, not in-depth explanations
+    # Reference paper again
+    # Reference our own CLI available for use/download
+    # Brief talk about the ethics/consequences of BWT making genomics more accessible
+    pass
 
 def main():
     input_string = "BANANA"
@@ -303,6 +492,10 @@ def main():
     wn.onkey(lambda: transform_visual(input_string), "2")
     wn.onkey(lambda: bwt_decoding(bwt_quick(input_string)), "3")
     wn.onkey(lambda: decoding_II('BANANA'), "4")
+    wn.onkey(lambda: ngs_I(input_string), "5")
+    wn.onkey(lambda: ngs_II(), "6")
+    wn.onkey(lambda: ngs_III(), "7")
+    wn.onkey(lambda: conclusion(), "8")
     wn.onkey(lambda: wn.bye(), "q")  # Exit the program on 'q' key press
     wn.mainloop()
 
