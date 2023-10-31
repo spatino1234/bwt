@@ -675,9 +675,9 @@ void getRunTimes(bool isRadix) {
     }
     printf("[");
     for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 20; j++) {
             time_sum = 0;
-            for (int k = 0; k < 20; k++) {
+            for (int k = 0; k < 50; k++) {
                 char sort_str[counts[i]];
                 genBWTString(counts[i], sort_str);
                 if (isRadix) {
