@@ -76,7 +76,6 @@ def conclusion():
     
     draw_text(f'{para_5}', -275, -240)
 
-    pass
 
 
 def main():

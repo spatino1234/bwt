@@ -14,6 +14,10 @@ t = turtle.Turtle()
 t.speed(1)  # Set the drawing speed
 t.hideturtle()
 
+# Turtle object for slide 7 figure
+wn.addshape('resized_figure.gif')
+image = turtle.Turtle()
+image.hideturtle()
 
 # Define the animation functions
 
@@ -22,6 +26,7 @@ used_keys = ["C","1", "2", "3", "4", "5", "6", "7", "8"]
 
 def clear_turtle():
     t.clear()  # Clear the turtle's drawings
+    image.hideturtle()
 
 def draw_text(text, x, y):
     t.penup()
@@ -109,7 +114,7 @@ def transform_visual(input_string):
     draw_text("2. Cyclic rotations:", -200, 0)
     y = -30
     for i in rotations:
-        draw_text(f'{i}', -100, y)
+        draw_text(f'{i}', -180, y)
         y -= 30
     
     draw_text("3. Lexicographically ordered rotations:", 0, 0)
@@ -150,7 +155,8 @@ def bwt_decoding(input_string):
     draw_text(f'{para_2}', -300, 150)
 
     input = 'BANANA$'
-    inp = [*input]
+    input2 = '$AAABNN'
+    inp = [*input2]
     inp2 = [*input_string]
 
     x = - 100
@@ -163,12 +169,12 @@ def bwt_decoding(input_string):
         y -= 20
     
     para_3 = 'To begin, Last, First ordering (LF) essentially means that the order in which characters appear \n'\
-             f'in the codeword {input_string}, is the same order in which they appear in the original \n'\
-             f'string, {input}. See below numeration to clarify:'
+             f'in the codeword {input_string}, is the same order in which they appear in the first column of the \n'\
+             f'lexicographically ordered rotations, {input}. See below numeration to clarify:'
     
     draw_text(f'{para_3}', -300, 75)
     
-    original_numbers = [1, 1, 1, 2, 2, 3, 1]
+    original_numbers = [1, 1, 2, 3, 1, 1, 2]
     transform_numbers = [1, 1, 2, 1, 1, 2, 3]
 
     x = - 130
@@ -181,8 +187,8 @@ def bwt_decoding(input_string):
         y -= 20
     pass
 
-    para_4 = 'The practical decoding method will be explained on the following slide. However, L-F mapping \n'\
-             'is the foundation for more time and space efficient decoding methodology, such as the FM \n'\
+    para_4 = 'The practical decoding method that contextualizes this information will be explained on the following slide.\n'\
+             'However, L-F mapping is the foundation for more time and space efficient decoding methodology, such as the FM \n'\
              'index, which you can read about in the Mathematics section of our group paper.'
     
     draw_text(f'{para_4}', -300, -260)
@@ -422,7 +428,7 @@ def ngs_II():
     
     draw_text(f'{para_3}', -400, -300)
 
-def ngs_III():
+def ngs_III(image):
     # Talk about how BWT revolutionized genomics. Might import images here? Figures from paper?
     clear_turtle()
     
@@ -437,11 +443,11 @@ def ngs_III():
                'Bioinformatics, vol. 25, no. 14, July 2009, pp. 1754-60. Silverchair, \n' \
                'https://doi.org/10.1093/bioinformatics/btp324.'
     
-    wn.addshape('resized_figure.gif')
-    image = turtle.Turtle()
+    
     image.pencolor("white")
     image.goto(0, -100)
     image.shape('resized_figure.gif')
+    image.showturtle()
 
     draw_text(f'{citation}', -400, -430)
 
@@ -473,11 +479,37 @@ def ngs_III():
 
 def conclusion():
     clear_turtle()
-    # Statement of purpose of this GUI—Overview, not in-depth explanations
-    # Reference paper again
-    # Reference our own CLI available for use/download
-    # Brief talk about the ethics/consequences of BWT making genomics more accessible
-    pass
+    
+
+    header ='Concluding Thoughts'
+    draw_header(f'{header}', -100, 300)
+
+    para_1 = 'In truth, this GUI is the proverbial tip of the iceberg for this project. The research, planning, \n'\
+             'effort, and expertise of six individual group members (and one comps advisor) went into making this \n'\
+             'project a reality. Every member of this team has left their mark on this project, and this GUI does not \n'\
+             'do that justice. Because of this, we implore you to further investigate all resources associated with this project. \n'
+    
+    draw_text(f'{para_1}', -325, 175)
+    
+    para_2 = 'For further discussion of literature, technology, algorithms, methods and ethics, \n' \
+             'see our paper, "Short-Read Sequence Alignment with the Burrows-Wheeler Transform."'
+    
+    draw_text(f'{para_2}', -275, 100)
+    
+    para_3 = 'For our own C-based implementation of a BWT-based short-read aligner, see our linked github.'
+    
+    draw_text(f'{para_3}', -275, 0)
+
+    para_4 = 'Lastly, we, the BWT comps group, would like to offer special thanks to Professor Layla Oesper for \n'\
+             'supporting us throughout this project; and also the CS department for helping us get this far.'
+    
+    draw_text(f'{para_4}', -275, -150)
+
+    para_5 = 'Sincerely, \n'\
+             ' \n '\
+             '  - Shreya Nair, Phi Rapacz, Serafín Patiño, Zeb Goldhaber-Gordon, Jack Owens, and A.J. Ristino \n' 
+    
+    draw_text(f'{para_5}', -275, -240)
 
 def main():
     input_string = "BANANA"
@@ -494,7 +526,7 @@ def main():
     wn.onkey(lambda: decoding_II('BANANA'), "4")
     wn.onkey(lambda: ngs_I(input_string), "5")
     wn.onkey(lambda: ngs_II(), "6")
-    wn.onkey(lambda: ngs_III(), "7")
+    wn.onkey(lambda: ngs_III(image), "7")
     wn.onkey(lambda: conclusion(), "8")
     wn.onkey(lambda: wn.bye(), "q")  # Exit the program on 'q' key press
     wn.mainloop()
