@@ -4,6 +4,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+/* wraps array index within array bounds (assumes value < 2 * limit) */
+#define Wrap(value, limit)      (((value) < (limit)) ? (value) : ((value) - (limit)))
+
+
 char *readGenome(char *fileName) {
     FILE *file = fopen(fileName, "r");
     if (file == NULL) {
@@ -113,19 +117,19 @@ int encodeCharacter(char character) {
     switch (character)
     {
     case 'A':
-        value = 0;
-        break;
-    case 'C':
         value = 1;
         break;
-    case 'T':
+    case 'C':
         value = 2;
         break;
     case 'G':
         value = 3;
         break;
+    case 'T':
+        value = 4;
+        break;
     case '$':
-        value = 4; 
+        value = 0; 
         break;
     }
     return value;
@@ -135,19 +139,19 @@ char decodeCharacter (int encoding) {
     char character;
     switch (encoding)
     {
-    case 0:
+    case 1:
         character = 'A';
         break;
-    case 1:
-        character = 'C';
-        break;
     case 2:
-        character = 'T';
+        character = 'C';
         break;
     case 3:
         character = 'G';
         break;
     case 4:
+        character = 'T';
+        break;
+    case 0:
         character = '$';
         break;
     }
@@ -398,10 +402,6 @@ void freeBW(BurrowsWheeler *BW) {
     free(BW);
 }
 
-
-/* wraps array index within array bounds (assumes value < 2 * limit) */
-#define Wrap(value, limit)      (((value) < (limit)) ? (value) : ((value) - (limit)))
-
 int *block;     /* block being (un)transformed */
 size_t blockSize;                    /* actual size of block */
 
@@ -419,54 +419,6 @@ static int ComparePresorted(const void *s1, const void *s2)
     offset2 = *((int *)s2) + 2;
 
     for(i = 2; i < blockSize; i++)
-    {
-        int c1, c2;
-
-        /* ensure that offsets are properly bounded */
-        if (offset1 >= blockSize)
-        {
-            offset1 -= blockSize;
-        }
-
-        if (offset2 >= blockSize)
-        {
-            offset2 -= blockSize;
-        }
-
-        c1 = block[offset1];
-        c2 = block[offset2];
-
-        if (c1 > c2)
-        {
-            return 1;
-        }
-        else if (c2 > c1)
-        {
-            return -1;
-        }
-
-        /* strings match to here, try next character */
-        offset1++;
-        offset2++;
-    }
-
-    /* strings are identical */
-    return 0;
-}
-
-static int ComparePresortedFull(const void *s1, const void *s2)
-{
-    int offset1, offset2;
-    int i;
-
-    /***********************************************************************
-    * Compare 1 character at a time until there's difference or the end of
-    * the block is reached.  This time start with the first character.
-    ***********************************************************************/
-    offset1 = *((int *)s1) + 2;
-    offset2 = *((int *)s2) + 2;
-
-    for(i = 0; i < blockSize; i++)
     {
         int c1, c2;
 
@@ -664,18 +616,6 @@ void BWTRadix(char *blockstr, char *transformed_string) {
     decodeList(transformed_string, last);
     free(last);
     free(block);
-    return;
-}
-
-void genBWTString(int length, char *bwt_string) {
-    int i;
-    int bwt_intstring[length];
-    for (i = 0; i < length; i++) { 
-        int num = rand() % 5; 
-        bwt_intstring[i] = num;
-    }
-    blockSize = length;
-    decodeList(bwt_string, bwt_intstring);
     return;
 }
 
