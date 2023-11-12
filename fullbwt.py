@@ -2,20 +2,36 @@ import numpy as np
 """
 This class contains methods and properties to perform BWT transformations
     Reversal, and pattern matching / querong.
+
+This class implemenets the Burrows Wheeler Transform (BWT) to take a string 
+    and transform it w/ BWT, reversing the transformed string, and perform
+    pattern matching queries on the transformed
 """
 class BurrowsWheeler:
     def __init__(self):
-        self.first_column = []              #List representing characters in first column of sorted matrix
-        self.last_column = []               #List representing characters in last column of sorted matrix
-        self.last_index = {}                #Dictionary where keys are characters in first column and values are their indices
-        self.first_index = {}               #Dictionary where keys are characters in last column and values are their indices
-        self.last_first_index = {}          #Dictionary mapping indices from last column to index in first column with the same character
-        self.first_original_mapping = {}    #Dictionary mapping indices from first column to index in original string with the same character
+        # Lists representing characters in the first and last columns of the BWT matrix
+        self.first_column = []              
+        self.last_column = []               
+
+        # Dictionaries for mapping characters to their indices in the first and last columns
+        self.last_index = {}                
+        self.first_index = {}    
+
+        # Dictionary mapping indices from the last column to the corresponding index
+        # in the first column with the same character
+        self.last_first_index = {}
+        self.first_original_mapping = {}
     
-    # Constructs the various columns and indixes from the transfomed string
     def construct_indicies(self, transform):
-        # Make the first and last col, sort the first col to act as the sorted first col
-        # is BWT matrix
+
+        """
+        Constructs the necessary data structures from the transformed string.
+        This includes the first and last columns of the BWT matrix, along with several
+        mappings for indices and characters.
+
+        @param transform: The transformed string using BWT.
+        """
+
         self.last_column = [*transform]
         self.first_column = [*transform]
         self.first_column.sort()
@@ -62,22 +78,23 @@ class BurrowsWheeler:
             self.first_original_mapping[self.first_index[cur]] = length-3-i
 
     def reverse(self, transform):
+        """
+        Reverses the Burrows-Wheeler Transform to reconstruct the original string.
+
+        :param transform: The transformed string using BWT.
+        :return: The original string before the BWT transformation.
+        """
         length = len(transform)
         # Hold the char of original string as constructed
         original = ['$']
         
-        ''' get idx of $1 in last column using last index, use last_first index to map
-            this index to the corresponding index in the first column
-
-            retrieve the char from last column from mapped idx. The char returned is 
-            right before $ in original string
-        '''
+        # Reconstructing the string starting from the '$' symbol
         cur = self.last_column[self.last_first_index[self.last_index['$1']]]
 
         # appends $ instead of $1
         original.append(cur[:1])
 
-        '''Reconsturct the remaining char of the orignal string. in each iteration
+        '''Reconstruct the remaining char of the orignal string. in each iteration
             retrieve next char that precedes the current one in the original string
             using last Column and first Columns.
 
@@ -94,11 +111,13 @@ class BurrowsWheeler:
         original.reverse()
         return "".join(original)
     
-    '''Find all occurances of a given substring within the orignal string'''
     def query(self, query):
-        '''get length of the original string + $ via first_column
-            two pointers for top and bottom of last/first index
-        '''
+        """
+        Performs a pattern matching query to find all occurrences of a given substring
+        within the original string.
+
+        :param query: The substring to search for in the original string.
+        """
         length = len(self.first_column)
         top = 0
         bottom = length-1
