@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
 /* wraps array index within array bounds (assumes value < 2 * limit) */
 #define Wrap(value, limit)      (((value) < (limit)) ? (value) : ((value) - (limit)))
@@ -593,7 +594,7 @@ void encodeString(char *input) {
 }
 
 void decodeList(char laststr[], int *input) {
-    char decoded_string[blockSize];
+    char *decoded_string = (char *)malloc(blockSize * sizeof(char));
     strcpy (decoded_string,"");
     int cur;
     char character;
@@ -603,6 +604,7 @@ void decodeList(char laststr[], int *input) {
         strncat(decoded_string, &character, 1);
     }
     strcpy(laststr, decoded_string);
+    free(decoded_string);
     return;
 }
 
@@ -619,12 +621,31 @@ void BWTRadix(char *blockstr, char *transformed_string) {
     return;
 }
 
-int main(){
-    char *genome = "GATATA$";
+void genBWTString(int length, char *bwt_string) {
+    srand(time(0));
+    int i;
+    int *bwt_intstring = (int *) malloc(length * sizeof(int));
+    for (i = 0; i < length - 1; i++) { 
+        int num = rand() % 4 + 1;
+        bwt_intstring[i] = num;
+    }
+    bwt_intstring[length-1] = 0;
+    blockSize = length;
+    decodeList(bwt_string, bwt_intstring);
+    free(bwt_intstring);
+    return;
+}
 
-    char transform[strlen(genome)];
+int main(){
+    // char *genome = "GATATA$";
+    int length = 1000000;
+    char *genome = (char *) malloc(length * sizeof(char));
+    genBWTString(length, genome);
+    char *transform = (char *)malloc(strlen(genome) * sizeof(char));
     BWTRadix(genome, transform);
     printf("%s\n",transform);
+    free(transform);
+    free(genome);
 
     return 0;
 }
