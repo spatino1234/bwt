@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <time.h>
 
+// Radix sort implementation largely lifted from Michael Dipperstein's bwt implementation under LGPL-3.0, https://github.com/MichaelDipperstein/bwt
+
 /* wraps array index within array bounds (assumes value < 2 * limit) */
 #define Wrap(value, limit)      (((value) < (limit)) ? (value) : ((value) - (limit)))
 
