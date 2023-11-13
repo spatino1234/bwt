@@ -41,48 +41,6 @@ char *readGenome(char *fileName) {
     return contents;
 }
 
-// Structure to store the original string and its rotations
-typedef struct {
-    char* str;
-    int index;
-} Rotation;
-
-// Comparison function for sorting rotations
-int compare_rotations(const void* a, const void* b) {
-    return strcmp(((Rotation*)a)->str, ((Rotation*)b)->str);
-}
-
-void transform(char* text, int len) {
-    Rotation* rotations = (Rotation*)malloc(len * sizeof(Rotation));
-    if (rotations == NULL) {
-        perror("Malloc failed during transform");
-        exit(1);
-    }
-
-    // Create rotations and store them in the Rotation array
-    for (int i = 0; i < len; i++) {
-        rotations[i].index = i;
-        rotations[i].str = (char*)malloc(len + 1);
-        if (rotations[i].str == NULL) {
-            perror("Memory allocation failed");
-            exit(1);
-        }
-        strcpy(rotations[i].str, &text[i]);
-        strncat(rotations[i].str, text, i);
-    }
-
-    // Sort the rotations
-    qsort(rotations, len, sizeof(Rotation), compare_rotations);
-
-    // Extract the last character of sorted rotations
-    for (int i = 0; i < len; i++) {
-        text[i] = rotations[i].str[len - 1];
-        free(rotations[i].str);
-    }
-
-    free(rotations);
-}
-
 Node *newNode(int val, Node *next) {
     Node *r = malloc(sizeof(Node));
     if (r == NULL) {
@@ -216,9 +174,9 @@ void constructIndices(BurrowsWheeler *BW, char *transform) {
         BW->last_first_index[i] = firstloc;
     }
 
-    BW->first_original_mapping[BW->first_index[0][4]] = transform_length-1;
+    BW->first_original_mapping[BW->first_index[0][0]] = transform_length-1;
 
-    intpair cur = BW->last_column[BW->last_first_index[BW->last_index[0][4]]];
+    intpair cur = BW->last_column[BW->last_first_index[BW->last_index[0][0]]];
     BW->first_original_mapping[BW->first_index[cur.inputint][cur.inputchar]] = transform_length-2;
 
     for (int i=0;i<transform_length-2;i++) {
@@ -242,7 +200,7 @@ void revstr(char *str1)
 
 void reverse(BurrowsWheeler *BW, char* reversal) {
     
-    intpair cur = BW->last_column[BW->last_index[0][4]];
+    intpair cur = BW->last_column[BW->last_index[0][0]];
 
     for (int i = 0; i < BW->length-1; i++) {
         cur = BW->last_column[BW->last_first_index[BW->last_index[cur.inputint][cur.inputchar]]];
@@ -638,89 +596,73 @@ void genBWTString(int length, char *bwt_string) {
     return;
 }
 
-int main(){
-    // char *genome = "GATATA$";
-    int length = 1000000;
-    char *genome = (char *) malloc(length * sizeof(char));
-    genBWTString(length, genome);
-    char *transform = (char *)malloc(strlen(genome) * sizeof(char));
-    BWTRadix(genome, transform);
-    printf("%s\n",transform);
-    free(transform);
-    free(genome);
+int main()  {
+    // Getting user input
+    char genomeFile[100];
+    printf("\nEnter the name of the .txt file with your reference genome: ");
+    scanf("%100s",genomeFile);
+    
+    // Reading genome from txt file input by user
+    char *genome = readGenome(genomeFile);
+    int genome_length = strlen(genome);
+    if (genome_length > 100001) {
+        printf("\nERROR: %s is too long. It can be at most 100,000 characters\n\n", genomeFile);
+        exit(0);
+    }
+    
+    // Encoding genome using BWT
+    char *transformed_genome = (char *)malloc(strlen(genome) * sizeof(char));
+    BWTRadix(genome, transformed_genome);
+    BurrowsWheeler *BW = initBW(genome_length+1);
+    constructIndices(BW, transformed_genome);
+    free(transformed_genome);
 
+    printf("\n");
+    while (1) {
+        char query1[300];
+        printf("\n\e[4mEnter a Query\e[m \nTo exit, \t  enter the query \"exit\"\nFor more options, enter the query \"help\"\n\n\e[1mQuery\e[m: ");
+        scanf("%300s", query1);
+        if (strncmp(query1, "exit", 4) == 0) {
+            printf("\n");
+            exit(0);
+        }
+        else if (strncmp(query1, "fastq", 5) == 0) {
+            char fastqFile[100];
+            printf("\tEnter .fastq file name: ");
+            scanf("%100s",fastqFile);
+            printf("\n\n");
+            queryFASTQ(BW, fastqFile);
+            fflush(stdin);
+            continue;
+        }
+        else if (strncmp(query1, "match", 5) == 0) {
+            char query2[300];
+            printf("\e[1mActual Query:\e[m ");
+            scanf("%300s",query2);
+
+            if (strlen(query2) < 251) {
+                query(BW, query2, 0, 1);
+            } else {
+                printf("\nERROR: Query is too long. It must be at most 250 characters\n\n");
+                fflush(stdin);
+            }
+        }
+        else if (strncmp(query1, "help", 5) == 0) {
+            printf("\n * To read queries from a .fastq file, enter the query \"fastq\"  *\n");
+            printf(" * To output the locations of matches, enter the query \"match\"  *\n");
+        }
+        else {
+            if (strlen(query1) < 251) {
+                query(BW, query1, 0, 0);
+                fflush(stdin);
+            } else {
+                printf("\nERROR: Query is too long. It must be at most 250 characters\n\n");
+                fflush(stdin);
+            }
+        }
+        printf("\n");
+    }
+
+    freeBW(BW);
     return 0;
 }
-
-
-
-
-// int main()  {
-//     // Getting user input
-//     char genomeFile[100];
-//     printf("\nEnter the name of the .txt file with your reference genome: ");
-//     scanf("%100s",genomeFile);
-    
-//     // Reading genome from txt file input by user
-//     char *genome = readGenome(genomeFile);
-//     int genome_length = strlen(genome);
-//     if (genome_length > 100001) {
-//         printf("\nERROR: %s is too long. It can be at most 100,000 characters\n\n", genomeFile);
-//         exit(0);
-//     }
-    
-//     // Encoding genome using BWT
-//     transform(genome, genome_length);
-//     BurrowsWheeler *BW = initBW(genome_length+1);
-//     constructIndices(BW, genome);
-
-//     // 
-//     printf("\n");
-//     while (1) {
-//         char query1[300];
-//         printf("\n\e[4mEnter a Query\e[m \nTo exit, \t  enter the query \"exit\"\nFor more options, enter the query \"help\"\n\n\e[1mQuery\e[m: ");
-//         scanf("%300s", query1);
-//         if (strncmp(query1, "exit", 4) == 0) {
-//             printf("\n");
-//             exit(0);
-//         }
-//         else if (strncmp(query1, "fastq", 5) == 0) {
-//             char fastqFile[100];
-//             printf("\tEnter .fastq file name: ");
-//             scanf("%100s",fastqFile);
-//             printf("\n\n");
-//             queryFASTQ(BW, fastqFile);
-//             fflush(stdin);
-//             continue;
-//         }
-//         else if (strncmp(query1, "match", 5) == 0) {
-//             char query2[300];
-//             printf("\e[1mActual Query:\e[m ");
-//             scanf("%300s",query2);
-
-//             if (strlen(query2) < 251) {
-//                 query(BW, query2, 0, 1);
-//             } else {
-//                 printf("\nERROR: Query is too long. It must be at most 250 characters\n\n");
-//                 fflush(stdin);
-//             }
-//         }
-//         else if (strncmp(query1, "help", 5) == 0) {
-//             printf("\n * To read queries from a .fastq file, enter the query \"fastq\"  *\n");
-//             printf(" * To output the locations of matches, enter the query \"match\"  *\n");
-//         }
-//         else {
-//             if (strlen(query1) < 251) {
-//                 query(BW, query1, 0, 0);
-//                 fflush(stdin);
-//             } else {
-//                 printf("\nERROR: Query is too long. It must be at most 250 characters\n\n");
-//                 fflush(stdin);
-//             }
-//         }
-//         printf("\n");
-//     }
-
-//     freeBW(BW);
-//     return 0;
-// }
