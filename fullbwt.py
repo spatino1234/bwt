@@ -22,6 +22,7 @@ class BurrowsWheeler:
         self.last_first_index = {}
         self.first_original_mapping = {}
     
+    # O(n log n) --> sorting
     def construct_indicies(self, transform):
 
         """
@@ -77,6 +78,7 @@ class BurrowsWheeler:
             cur = self.last_column[self.last_first_index[self.last_index[cur]]]
             self.first_original_mapping[self.first_index[cur]] = length-3-i
 
+    # O(n) --> iterates over each char of transform string once
     def reverse(self, transform):
         """
         Reverses the Burrows-Wheeler Transform to reconstruct the original string.
@@ -111,6 +113,7 @@ class BurrowsWheeler:
         original.reverse()
         return "".join(original)
     
+    # O(m * n) m = length of query, n = lengthof transformed string
     def query(self, query):
         """
         Performs a pattern matching query to find all occurrences of a given substring
@@ -155,6 +158,7 @@ class BurrowsWheeler:
         for i in range(top, bottom+1):
             print(self.first_original_mapping[i],":",self.first_original_mapping[i]+(len(query)-1))
 
+# O(n^2)
 def bwt(input):
     input = input + '$'
     indices = np.arange(len(input))
