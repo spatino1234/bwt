@@ -1,3 +1,9 @@
+# gui.py
+# Built by A.J. Ristino
+
+# Comprehensive GUI introduction to our project
+# Note: If you rapidly make key inputs, the GUI breaks. Let the screen finish loading before swapping screens!
+
 import turtle
 import os
 
@@ -6,26 +12,26 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Create a turtle screen:
 wn = turtle.Screen()
-wn.bgcolor("white")  # Set the background color
+wn.bgcolor("white")  
 wn.title("BWT Comps GUI")
 
-# Create a Turtle object
+# Turtle used for all slides
 t = turtle.Turtle()
-t.speed(1)  # Set the drawing speed
+t.speed(1)  
 t.hideturtle()
 
-# Turtle object for slide 7 figure
+# Specialized turtle object for slide 7 figure
 wn.addshape('resized_figure.gif')
 image = turtle.Turtle()
 image.hideturtle()
 
-# Define the animation functions
-
 slides = ["Table of Contents", "Intro", "Transform Explanation", "Decoding I", "Decoding II", "NGS Application", "NGS Example", "BWT + NGS Metrics", "Closing Thoughts"]
 used_keys = ["C","1", "2", "3", "4", "5", "6", "7", "8"]
 
+# turtle and text methods:
+
 def clear_turtle():
-    t.clear()  # Clear the turtle's drawings
+    t.clear() 
     image.hideturtle()
 
 def draw_text(text, x, y):
@@ -40,12 +46,15 @@ def draw_header(text, x, y):
     t.pendown()
     t.write(text, font=("Times New Roman", 20, "normal"))
 
+# Quick BWT (adapted from bwt_aj_np.py)
 def bwt_quick(input_string):
     input_string += '$'
     indices = list(range(len(input_string)))
     sorted_indices = sorted(indices, key=lambda i: input_string[i:] + input_string[:i])
     bwt_encoded = ''.join(input_string[i - 1] for i in sorted_indices)
     return(bwt_encoded)
+
+# First slide function
 
 def titlescreen():
     title = "The Burrows Wheeler Transform in NGS"
@@ -54,6 +63,8 @@ def titlescreen():
     draw_header(f'{title}', -200, 0)
     draw_text(f'{subtext}', -110, -50)
     draw_text(f'{subtext_2}', -130, -300)
+
+# Contents slide, reachable by pressing C key
 
 def contents():
     clear_turtle()
@@ -77,6 +88,7 @@ def contents():
         y -= 30
                
                 
+# Slide 1, reachable by pressing 1 key
 
 def bwt_intro(input_string):
     clear_turtle()
@@ -85,7 +97,6 @@ def bwt_intro(input_string):
                     'functionality, and application of the Burrows-Wheeler Transform in Short-Read alignment. \n'\
                     'Below is our example string and corresponding BWT codeword. \n'\
     
-
     draw_text(f'{slide_paragraph}', -300, 200)
     bwt_encoded = bwt_quick(input_string)
     # Visualization
@@ -95,6 +106,7 @@ def bwt_intro(input_string):
     draw_text("BWT Encoded String:", -200, 0)
     draw_text(bwt_encoded, -100, -30)
 
+# Slide 2, reachable by pressing 2 key
 
 def transform_visual(input_string):
     clear_turtle()
@@ -140,7 +152,7 @@ def cyclic_transformations(input_string):
 
     return cyclic_transforms
 
-# Initialize the turtle
+# Slide 3, reachable by pressing the 3 key
 
 def bwt_decoding(input_string):
     clear_turtle()
@@ -193,6 +205,8 @@ def bwt_decoding(input_string):
     
     draw_text(f'{para_4}', -300, -260)
 
+# Decoding helper method for constructing graphical display
+
 def bwt_decode(input):
 
     # Building the decoding table
@@ -211,7 +225,8 @@ def bwt_decode(input):
     
     return table
         
-        
+# Slide 4, reachable by pressing the 4 key
+
 def decoding_II(input_string):
    
    clear_turtle()
@@ -295,8 +310,10 @@ def decoding_II(input_string):
 
    draw_text(f'{end_paragraph}', -300, -200)
 
+
+# Slide 5, reachable by pressing the 5 key
+
 def ngs_I(input_string):
-    # Explanations required:
 
     clear_turtle()
 
@@ -356,8 +373,6 @@ def ngs_I(input_string):
 
     draw_text(f'{inter_2}', -150, -250)
 
-    # G$CTGCGCTCTTGTCTTTGATATAGGTTTTCAAACCGCGCCAAAAAAAAC
-
     string_compressed = 'G$CTGCGCTCT2TGTCT3GATATAG2T4CA3CGCGCC7A3C'
     
     compressed_display = 'G$CTGCGC \n' \
@@ -382,6 +397,8 @@ def ngs_I(input_string):
     
     draw_text(f'{para_4}', -400, -350)
 
+# Slide 6, reachable by pressing the 6 key
+
 def ngs_II():
     clear_turtle()
    
@@ -396,10 +413,7 @@ def ngs_II():
 
     draw_text(f'{para_2}', -400, 120)
 
-    # Need DNA String (could be random, just a model)
-
     model = 'ACTGACTGTCATCGTACGTAGCTACGACGTAGCATGCGACGTAGCACGACGAGTCGACGTAGCTAGCGACGA'
-    #                           AGCTACGACGT #Aligning this manually is gonna be a chore
 
     substring = 'AGCTACGACGT'
 
@@ -410,16 +424,11 @@ def ngs_II():
 
     draw_text(f'{inter_1}', -400, -50)
 
-
-
     mapped_substring = 'ACTGACTGTCATCGTACGTAGCTACGACGTAGCATGCGACGTAGCACGACGAGTCGACGTAGCTAGCGACGA \n' \
-                       #'                  ^^^^^^^^^^^ \n'\
-                      # '                  AGCTACGACGT' # What are the odds this works
     
     draw_text(f'{mapped_substring}', -400, -120)
     draw_text(f'{substring} located at range [20, 30] (1-indexed)', -195, -150)
     
-
     para_3 = 'As briefly mentioned on slide three, the involement of the BWT is based on an opportunistic data structures \n'\
              'called the FM-index. Built by Farragina and Manzini, the index is a set of two tables whose construction takes linear time \n'\
              '(i.e. a larger input has a proportionally longer build time), but functions sublinearly, meaning input scaling favors large inputs. \n'\
@@ -428,8 +437,10 @@ def ngs_II():
     
     draw_text(f'{para_3}', -400, -300)
 
+# Slide 7, reachable by pressing the 7 key
+# Specialized second turtle used for this slide
+
 def ngs_III(image):
-    # Talk about how BWT revolutionized genomics. Might import images here? Figures from paper?
     clear_turtle()
     
     para_1 = 'The application of the BWT to short-read sequence aligners took off in the late 2000s, with development of Bowtie, \n'\
@@ -477,6 +488,8 @@ def ngs_III(image):
     
     draw_text(f'{note_3}', 230, -100)
 
+# slide 8, reachable by pressing the 8 key
+
 def conclusion():
     clear_turtle()
     
@@ -518,6 +531,9 @@ def main():
 
     wn._root.attributes('-topmost', 1)
     wn._root.attributes('-topmost', 0)
+
+    # Onkey functions work best with lambda functions 
+    # mainloop() allows for repeated key entries
 
     wn.onkey(lambda: contents(), "c")
     wn.onkey(lambda: bwt_intro(input_string), "1")
