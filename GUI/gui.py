@@ -444,8 +444,8 @@ def ngs_III(image):
     clear_turtle()
     
     para_1 = 'The application of the BWT to short-read sequence aligners took off in the late 2000s, with development of Bowtie, \n'\
-             'in 2008 followed closely behind by BWA (Burrows Wheeler Aligner) and SOAP2 in 2009. Both tools demonstrated that BWT-based aligners \n'\
-             'represented the next evolution of sequence alignment. For tangible metrics, see the below figure (citation included) where all three \n'\
+             'in 2008 followed closely behind by BWA (Burrows Wheeler Aligner) and SOAP2 in 2009. These three tools demonstrated that BWT-based aligners \n'\
+             'represent the next evolution of sequence alignment. For tangible metrics, see the below figure (citation included) where all three \n'\
              'are compared against MAQ, the previously best short-read aligned on the market:'
     
     draw_text(f'{para_1}', -400, 200)
