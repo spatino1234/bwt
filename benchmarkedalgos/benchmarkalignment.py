@@ -4,7 +4,7 @@ import timeit
 from timeit import Timer
 import numpy as np
 
-
+# generate random DNA sequence of specified length
 def DNA(length):
     return ''.join(random.choice('CGTA') for _ in range(length))
 

@@ -4,6 +4,7 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
+# An induced sorter takes in an array, and can sort it in O(n) time
 class InducedSorter:
     def __init__(self, arr):
         self.alphabet_size = len(set(arr))
@@ -11,6 +12,7 @@ class InducedSorter:
         self.arr.append(0)
         self.alphabet_size += 1
 
+    # Classify the letters as L, S, or S* class, here represented as -, +, or *
     def characterizeLetters(self):
         categories = [0 for _ in range(len(self.arr))]
         categories[len(self.arr)-1] = "*"
@@ -25,10 +27,12 @@ class InducedSorter:
             else:
                 categories[index] = "+"
         return(categories)
-
+    
+    # Print the suffix of a specific location
     def suffix(self, index):
         return ''.join(self.arr[index:])
-
+    
+    # Generate the list of substrings beginning and ending with S* class characters
     def createStarSubstrings(self, categories):
         current_string = []
         has_hit_star = False
@@ -47,15 +51,6 @@ class InducedSorter:
                 current_string.append(char)
         all_star_substrings.append(current_string)
         return(all_star_substrings, star_list)
-    
-    def createNames(star_substrings):
-        current_substring = star_substrings[0]
-        current_name = 0
-        names = []
-        for substring in star_substrings:
-            if substring != current_substring:
-                current_name += 1
-            names.append(current_name)
 
     def count_sort_letters(self, array, size, col, base, max_len):
         """ Helper routine for performing a count sort based upon column col """
@@ -87,16 +82,19 @@ class InducedSorter:
 
         return array
     
+    # Given the list of sorted S* substrings, generate numerical names for each one, where if two are the same they share the same name
     def numberedStarSubstrings(self, radix_sorted):
         number_array = [0 for _ in range(len(radix_sorted))]
         current_str = radix_sorted[0][1]
         current_val = 0
-        for index, (original_index, substring) in enumerate(radix_sorted):
+        for (original_index, substring) in radix_sorted:
             if substring != current_str:
                 current_val += 1
                 current_str = substring
             number_array[original_index] = current_val
         return number_array
+    
+    # Given the list of sorted S* suffixes, induce the L suffixes
     def induceMinus(self, C_minus, C_star):
         C_minus[self.arr[len(self.arr) - 2]].append(len(self.arr) - 2)
         for a in range(1, self.alphabet_size):
@@ -110,7 +108,8 @@ class InducedSorter:
             C_minus[a] = C
             for i in C_star[a]:
                 C_minus[self.arr[i-1]].append(i - 1)
-
+    
+    # Given the list of L suffixes, induce the list of other S suffixes
     def inducePlus(self, C_minus, C_plus):
         for a in range(self.alphabet_size-1, 0, -1):
             C = []
@@ -124,12 +123,19 @@ class InducedSorter:
                 if i > 0 and self.arr[i-1] < a:
                     C_plus[self.arr[i-1]].insert(0, i - 1)
 
+    # Generate the entire suffix array from the character-specific L and S suffix sections
     def makeSuffix(self, C_minus, C_plus):
         suffix = [len(self.arr) - 1]
         for minus, plus in zip(C_minus, C_plus):
             suffix = suffix + minus + plus
         return suffix
 
+    # The whole induced sort start to finish:
+    # Categorize each character, then for each S* character, find its substrings
+    # Sort those substrings and name them, then recursively generate the suffix array of those names until there are no duplicate names
+    # Once done there will be a suffix array of S* substrings
+    # Use that suffix array to induce the L array, and use that to generate the full S array
+    # Add $S0L0S1L1...SnLn ofr the full suffix array
     def inducedSort(self):
         C_star = [[] for _  in range(self.alphabet_size)]
         C_minus = [[] for _  in range(self.alphabet_size)]
@@ -154,10 +160,12 @@ class InducedSorter:
         self.inducePlus(C_minus, C_plus)
         suffix = self.makeSuffix(C_minus, C_plus)
         return suffix
-            
+
+# generate random DNA sequence of specified length            
 def DNA(length):
     return ''.join(random.choice('CGTA') for _ in range(length))
 
+# convert the suffix array to a BWT by taking the character before each suffix array character (the last character of that BWT matrix line)
 def suffixToBwt(suffix_arr, str):
     BWT = ""
     for loc in suffix_arr:
@@ -167,6 +175,7 @@ def suffixToBwt(suffix_arr, str):
             BWT += str[loc - 1]
     return BWT
 
+# generate benchmarking inducedsort time for each count length
 if __name__ == '__main__':
     timesbase = []
     counts = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000]
