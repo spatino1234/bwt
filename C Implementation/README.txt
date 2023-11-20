@@ -1,6 +1,6 @@
 bwt.c README Document
 
-Author: Jack Owen
+Author: Jack Owens
 
 Contributors:
 Shreya S. Nair
