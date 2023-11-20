@@ -52,5 +52,9 @@ C Implementation 🖥️
 - Hands-On Implementation: We're not just studying; we're building! From exact matches to handling mismatches and gaps, we're on it.
 - Data Playground: Engaging with real and simulated datasets to test and refine our alignment algorithms.
 
-##Running Locally
-1. To run our C implementation
+**Running Locally**
+1. Run our C implementation by doing
+```
+gcc bwt.c -o bwt
+./bwt
+```
